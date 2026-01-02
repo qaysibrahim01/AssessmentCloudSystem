@@ -4,92 +4,113 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Chra;
+use App\Models\ChraDeleteRequest;
+use App\Models\AdminDeletedChra;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 
 class AdminChraController extends Controller
 {
     public function index(Request $request)
     {
-        // -------------------------
-        // FILTER INPUTS
-        // -------------------------
+        $view   = $request->get('view', 'list');
         $status = $request->get('status');
-        $risk   = $request->get('risk');
-        $ap     = $request->get('ap');
+        $type   = $request->get('type');   // system | uploaded
+        $search = $request->get('search');
 
-        // -------------------------
-        // BASE QUERY
-        // -------------------------
-        $query = Chra::query()
-            ->with('riskEvaluations');
-
-        // -------------------------
-        // APPLY FILTERS
-        // -------------------------
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        if ($risk) {
-            $query->whereHas('riskEvaluations', function ($q) use ($risk) {
-                $q->where('risk_level', $risk);
-            });
-        }
-
-        if ($ap) {
-            $query->whereHas('riskEvaluations', function ($q) use ($ap) {
-                $q->where('action_priority', $ap);
-            });
-        }
-
-        $chras = $query
-            ->orderByDesc('updated_at')
-            ->get();
-
-        // -------------------------
-        // GLOBAL STATISTICS
-        // -------------------------
+        // ================= COUNTS =================
         $totalChra     = Chra::count();
         $draftCount    = Chra::where('status', 'draft')->count();
         $pendingCount  = Chra::where('status', 'pending')->count();
         $approvedCount = Chra::where('status', 'approved')->count();
         $rejectedCount = Chra::where('status', 'rejected')->count();
 
-        // -------------------------
-        // RISK SUMMARY (DISTINCT CHRA)
-        // -------------------------
-        $highRiskCount = Chra::whereHas('riskEvaluations', function ($q) {
-            $q->where('risk_level', 'high');
-        })->count();
+        $pendingDeleteCount = ChraDeleteRequest::where('status', 'pending')->count();
 
-        $moderateRiskCount = Chra::whereHas('riskEvaluations', function ($q) {
-            $q->where('risk_level', 'moderate');
-        })->count();
+        // ================= DELETE REQUEST VIEW =================
+        if ($view === 'delete') {
+            $requests = ChraDeleteRequest::with(['chra', 'requester'])
+                ->where('status', 'pending')
+                ->latest()
+                ->get();
 
-        $lowRiskCount = Chra::whereHas('riskEvaluations', function ($q) {
-            $q->where('risk_level', 'low');
-        })->count();
+            return view('admin.chra.index', compact(
+                'view',
+                'requests',
+                'pendingDeleteCount',
+                'totalChra',
+                'draftCount',
+                'pendingCount',
+                'approvedCount',
+                'rejectedCount'
+            ));
+        }
+
+        // ================= DELETED REGISTRY VIEW =================
+        if ($view === 'deleted') {
+            $deletedChras = AdminDeletedChra::with(['requester', 'deleter'])
+                ->orderByDesc('deleted_at')
+                ->get();
+
+            return view('admin.chra.index', compact(
+                'view',
+                'deletedChras',
+                'pendingDeleteCount',
+                'totalChra',
+                'draftCount',
+                'pendingCount',
+                'approvedCount',
+                'rejectedCount'
+            ));
+        }
+
+        // ================= MAIN CHRA LIST =================
+        $query = Chra::query();
+
+        // Status filter (matches table column)
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        // Report type filter
+        if ($type === 'uploaded') {
+            $query->whereNotNull('uploaded_pdf_path');
+        }
+
+        if ($type === 'system') {
+            $query->whereNull('uploaded_pdf_path');
+        }
+
+        // Search: ID / Company / Assessor
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('company_name', 'like', "%{$search}%")
+                  ->orWhere('assessor_name', 'like', "%{$search}%")
+                  ->orWhere('id', $search);
+            });
+        }
+
+        $chras = $query->latest()->get();
 
         return view('admin.chra.index', compact(
+            'view',
             'chras',
             'status',
-            'risk',
-            'ap',
+            'type',
+            'search',
+            'pendingDeleteCount',
             'totalChra',
             'draftCount',
             'pendingCount',
             'approvedCount',
-            'rejectedCount',
-            'highRiskCount',
-            'moderateRiskCount',
-            'lowRiskCount'
+            'rejectedCount'
         ));
     }
 
     public function show(Chra $chra)
     {
+        $this->authorize('view', $chra);
+
         $chra->load([
             'workUnits',
             'chemicals',
@@ -104,27 +125,25 @@ class AdminChraController extends Controller
 
     public function approve(Chra $chra)
     {
-        if ($chra->status !== 'pending') {
-            return back()->with('error', 'Only pending CHRA can be approved.');
-        }
+        $this->authorize('review', Chra::class);
+
+        abort_if($chra->status !== 'pending', 403);
 
         $chra->update([
-            'status'      => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'admin_reason'=> null,
+            'status'       => 'approved',
+            'approved_by'  => Auth::id(),
+            'approved_at'  => now(),
+            'admin_reason' => null,
         ]);
 
-        return redirect()
-            ->route('admin.chra.index')
-            ->with('success', 'CHRA approved successfully.');
+        return back()->with('success', 'CHRA approved successfully.');
     }
 
     public function reject(Request $request, Chra $chra)
     {
-        if ($chra->status !== 'pending') {
-            return back()->with('error', 'Only pending CHRA can be rejected.');
-        }
+        $this->authorize('review', Chra::class);
+
+        abort_if($chra->status !== 'pending', 403);
 
         $request->validate([
             'reason' => 'required|string|min:5',
@@ -135,11 +154,7 @@ class AdminChraController extends Controller
             'admin_reason' => $request->reason,
         ]);
 
-        return redirect()
-            ->route('admin.chra.index')
-            ->with('success', 'CHRA rejected and returned to assessor.');
+        return back()->with('success', 'CHRA rejected and returned to assessor.');
     }
-
-
 
 }

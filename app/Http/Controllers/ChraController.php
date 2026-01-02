@@ -33,9 +33,6 @@ class ChraController extends Controller
         return view('chra.create');
     }
 
-    /**
-     * CREATE = DRAFT
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -58,104 +55,22 @@ class ChraController extends Controller
 
     public function show(Chra $chra)
     {
+        $this->authorize('view', $chra);
+
         return view('chra.show', compact('chra'));
     }
 
     public function edit(Chra $chra)
     {
+        $this->authorize('update', $chra);
+        abort_if($chra->isLocked(), 403);
+
         return view('chra.edit', compact('chra'));
     }
 
-    /* ===========================
-        SECTION C – WORK UNITS
-    ============================ */
-    public function addWorkUnit(Request $request, Chra $chra)
-    {
-        abort_if($chra->isLocked(), 403);
-
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'work_area' => 'required|string',
-        ]);
-
-        $chra->workUnits()->create($validated);
-
-        return redirect()->route('chra.edit', $chra)->withFragment('section-c');
-    }
-
-    public function deleteWorkUnit(ChraWorkUnit $unit)
-    {
-        abort_if($unit->chra->isLocked(), 403);
-
-        $chra = $unit->chra;
-        $unit->delete();
-
-        return redirect()->route('chra.edit', $chra)->withFragment('section-c');
-    }
-
-    /* ===========================
-        SECTION D – CHEMICALS
-    ============================ */
-    public function addChemical(Request $request, Chra $chra)
-    {
-        abort_if($chra->isLocked(), 403);
-
-        $validated = $request->validate([
-            'chemical_name' => 'required|string',
-            'h_code' => 'nullable|string',
-        ]);
-
-        $chra->chemicals()->create($validated);
-
-        return redirect()->route('chra.edit', $chra)->withFragment('section-d');
-    }
-
-    public function deleteChemical(ChraChemical $chemical)
-    {
-        abort_if($chemical->chra->isLocked(), 403);
-
-        $chra = $chemical->chra;
-        $chemical->delete();
-
-        return redirect()->route('chra.edit', $chra)->withFragment('section-d');
-    }
-
-    /* ===========================
-        SECTION F – RECOMMENDATIONS
-    ============================ */
-    public function addRecommendation(Request $request, Chra $chra)
-    {
-        abort_if($chra->isLocked(), 403);
-
-        $validated = $request->validate([
-            'category'        => 'required|in:TC,OC,PPE,ERP,Monitoring',
-            'action_priority' => 'required|in:AP-1,AP-2,AP-3',
-            'recommendation'  => 'required|string',
-        ]);
-
-        $chra->recommendations()->create($validated);
-
-        return redirect()
-            ->route('chra.edit', $chra)
-            ->withFragment('section-f')
-            ->with('success', 'Recommendation added successfully.');
-    }
-
-    public function deleteRecommendation(ChraRecommendation $recommendation)
-    {
-        abort_if($recommendation->chra->isLocked(), 403);
-
-        $chra = $recommendation->chra;
-        $recommendation->delete();
-
-        return redirect()->route('chra.edit', $chra)->withFragment('section-f');
-    }
-
-    /* ===========================
-        SECTIONS A + B + G
-    ============================ */
     public function updateSections(Request $request, Chra $chra)
     {
+        $this->authorize('update', $chra);
         abort_if($chra->isLocked(), 403);
 
         $validated = $request->validate([
@@ -173,47 +88,23 @@ class ChraController extends Controller
         return redirect()->route('chra.edit', $chra)->withFragment('section-g');
     }
 
-    public function autoSave(Request $request, Chra $chra)
-    {
-        abort_if($chra->isLocked(), 403);
-
-        $chra->update(
-            $request->only([
-                'assessment_objective',
-                'process_description',
-                'work_activities',
-                'chemical_usage_areas',
-                'assessor_conclusion',
-                'implementation_timeframe',
-            ])
-        );
-
-        return response()->json(['status' => 'saved']);
-    }
-
-
-    /* ===========================
-        GLOBAL ACTIONS
-    ============================ */
     public function saveDraft(Chra $chra)
     {
+        $this->authorize('update', $chra);
         abort_if($chra->status === 'approved', 403);
 
-        $chra->update([
-            'status' => 'draft',
-        ]);
+        $chra->update(['status' => 'draft']);
 
-        return redirect()
-            ->route('chra.show', $chra)
-            ->with('success', 'Draft saved successfully.');
+        return back()->with('success', 'Draft saved successfully.');
     }
 
     public function submitForApproval(Chra $chra)
     {
+        $this->authorize('update', $chra);
+
         abort_if(!in_array($chra->status, ['draft', 'rejected']), 403);
 
         $errors = $chra->submissionErrors();
-
         if (!empty($errors)) {
             return redirect()
                 ->route('chra.edit', $chra)
@@ -221,7 +112,6 @@ class ChraController extends Controller
                 ->withFragment('section-a');
         }
 
-        // 🔒 Sync calculated summary before submission
         $chra->update([
             'overall_risk_profile' => $chra->highestRiskLevel(),
             'status'               => 'pending',
@@ -233,13 +123,9 @@ class ChraController extends Controller
             ->with('success', 'CHRA submitted for approval.');
     }
 
-
-    /* ===========================
-        DELETE REQUEST
-    ============================ */
     public function requestDelete(Request $request, Chra $chra)
     {
-        abort_if($chra->user_id !== Auth::id(), 403);
+        $this->authorize('requestDelete', $chra);
 
         if ($chra->deleteRequests()->where('status', 'pending')->exists()) {
             return back()->with('error', 'Delete request already submitted.');
@@ -259,112 +145,12 @@ class ChraController extends Controller
         return back()->with('success', 'Delete request submitted to admin.');
     }
 
-    public function storeExposure(Request $request, Chra $chra)
-    {
-        abort_if($chra->isLocked(), 403);
-
-        $validated = $request->validate([
-            'chra_work_unit_id' => 'required|exists:chra_work_units,id',
-            'chra_chemical_id'  => 'required|exists:chra_chemicals,id',
-            'exposure_route'    => 'required|in:inhalation,dermal,ingestion',
-            'task'              => 'nullable|string',
-            'exposure_frequency'=> 'nullable|string',
-            'exposure_duration' => 'nullable|string',
-            'existing_control'  => 'nullable|string',
-            'control_adequacy'  => 'nullable|in:adequate,inadequate',
-            'exposure_rating'   => 'required|integer|min:1|max:5',
-        ]);
-
-        $exposure = ChraExposure::create([
-            'chra_id' => $chra->id,
-            ...$validated,
-        ]);
-
-        // Auto-calculate risk (Form D logic)
-        $hazard = $exposure->chemical->hazard_rating ?? 1;
-        $score  = $hazard * $validated['exposure_rating'];
-
-        if ($score >= 15) {
-            $level = 'high'; $ap = 'AP-1';
-        } elseif ($score >= 5) {
-            $level = 'moderate'; $ap = 'AP-2';
-        } else {
-            $level = 'low'; $ap = 'AP-3';
-        }
-
-        $exposure->riskEvaluation()->create([
-            'hazard_rating'   => $hazard,
-            'exposure_rating' => $validated['exposure_rating'],
-            'risk_score'      => $score,
-            'risk_level'      => $level,
-            'action_priority' => $ap,
-        ]);
-
-        return redirect()
-            ->route('chra.edit', $chra)
-            ->withFragment('section-e')
-            ->with('success', 'Exposure assessment saved (Form A–D).');
-    }
-
-
-    public function storeRiskEvaluation(Request $request, ChraExposure $exposure)
-    {
-        abort_if($exposure->chra->isLocked(), 403);
-
-        $validated = $request->validate([
-            'exposure_rating' => 'required|integer|min:1|max:5',
-        ]);
-
-        // Hazard rating comes from chemical
-        $hazardRating = $exposure->chemical->hazard_rating ?? 1;
-
-        $riskScore = $validated['exposure_rating'] * $hazardRating;
-
-        // Determine risk level
-        if ($riskScore >= 15) {
-            $riskLevel = 'high';
-            $actionPriority = 'AP-1';
-        } elseif ($riskScore >= 5) {
-            $riskLevel = 'moderate';
-            $actionPriority = 'AP-2';
-        } else {
-            $riskLevel = 'low';
-            $actionPriority = 'AP-3';
-        }
-
-        ChraRiskEvaluation::updateOrCreate(
-            ['chra_exposure_id' => $exposure->id],
-            [
-                'exposure_rating' => $validated['exposure_rating'],
-                'hazard_rating'   => $hazardRating,
-                'risk_score'      => $riskScore,
-                'risk_level'      => $riskLevel,
-                'action_priority' => $actionPriority,
-            ]
-        );
-
-        return redirect()
-            ->route('chra.edit', $exposure->chra)
-            ->withFragment('section-e')
-            ->with('success', 'Risk evaluation calculated and saved.');
-    }
-
     public function downloadPdf(Chra $chra)
     {
-        // Allow assessor (owner) OR admin
-        abort_if(
-            auth()->id() !== $chra->user_id &&
-            auth()->user()->role !== 'admin',
-            403
-        );
+        $this->authorize('view', $chra);
 
-        // Optional: restrict to submitted+
-        abort_if(
-            !in_array($chra->status, ['pending', 'approved']),
-            403
-        );
+        abort_if(!in_array($chra->status, ['pending', 'approved']), 403);
 
-        // Eager load EVERYTHING used in PDF
         $chra->load([
             'workUnits',
             'chemicals',
@@ -384,6 +170,4 @@ class ChraController extends Controller
             '.pdf'
         );
     }
-
-
 }

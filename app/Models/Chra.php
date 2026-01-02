@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class Chra extends Model
 {
@@ -17,28 +18,38 @@ class Chra extends Model
         'assessment_date',
         'completion_date',
 
-        // Section A
         'assessment_objective',
         'assessment_type',
         'assessment_location',
 
-        // Section B
         'process_description',
         'work_activities',
         'chemical_usage_areas',
 
-        // Section G
         'overall_risk_profile',
         'assessor_conclusion',
         'implementation_timeframe',
 
-        // Status & admin
         'status',
         'admin_reason',
         'approved_by',
         'approved_at',
+        'submitted_at',
 
         'user_id',
+        'uploaded_pdf_path',
+        'source',
+
+
+    ];
+
+    protected $casts = [
+        'assessment_date' => 'date',
+        'completion_date' => 'date',
+        'approved_at'     => 'datetime',
+        'submitted_at'    => 'datetime',
+        'created_at'      => 'datetime',
+        'updated_at'      => 'datetime',
     ];
 
     /* =========================
@@ -70,19 +81,19 @@ class Chra extends Model
         return $this->hasMany(ChraExposure::class);
     }
 
-    /**
-     * CHRA → Risk Evaluations (THROUGH exposures)
-     */
     public function riskEvaluations()
     {
         return $this->hasManyThrough(
             ChraRiskEvaluation::class,
             ChraExposure::class,
-            'chra_id',          // FK on chra_exposures
-            'chra_exposure_id', // FK on chra_risk_evaluations
-            'id',               // PK on chras
-            'id'                // PK on chra_exposures
+            'chra_id',
+            'chra_exposure_id'
         );
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /* =========================
@@ -99,13 +110,6 @@ class Chra extends Model
         return ! $this->isLocked();
     }
 
-    public function hasDeleteRequestPending(): bool
-    {
-        return $this->deleteRequests()
-            ->whereNull('resolved_at')
-            ->exists();
-    }
-
     /* =========================
         RISK HELPERS
     ========================= */
@@ -114,31 +118,22 @@ class Chra extends Model
     {
         $exposures = $this->exposures()->with('riskEvaluation')->get();
 
-        if ($exposures->isEmpty()) {
-            return null;
-        }
+        if ($exposures->isEmpty()) return null;
 
         if ($exposures->contains(fn ($e) =>
             optional($e->riskEvaluation)->risk_level === 'high'
-        )) {
-            return 'High';
-        }
+        )) return 'High';
 
         if ($exposures->contains(fn ($e) =>
             optional($e->riskEvaluation)->risk_level === 'moderate'
-        )) {
-            return 'Moderate';
-        }
+        )) return 'Moderate';
 
         return 'Low';
     }
 
-
     public function recommendedActionPriority(): ?string
     {
-        $aps = $this->riskEvaluations()
-            ->pluck('action_priority')
-            ->unique();
+        $aps = $this->riskEvaluations()->pluck('action_priority')->unique();
 
         if ($aps->contains('AP-1')) return 'AP-1';
         if ($aps->contains('AP-2')) return 'AP-2';
@@ -148,47 +143,21 @@ class Chra extends Model
     }
 
     /* =========================
-        SUBMISSION VALIDATION
+        SUBMISSION
     ========================= */
 
     public function submissionErrors(): array
     {
         $errors = [];
 
-        if (empty($this->assessment_objective)) {
-            $errors[] = 'Section A: Assessment objective is required.';
-        }
-
-        if (
-            empty($this->process_description) ||
-            empty($this->work_activities) ||
-            empty($this->chemical_usage_areas)
-        ) {
-            $errors[] = 'Section B: Process details are incomplete.';
-        }
-
-        if ($this->workUnits()->count() === 0) {
-            $errors[] = 'Section C: At least one work unit is required.';
-        }
-
-        if ($this->chemicals()->count() === 0) {
-            $errors[] = 'Section D: At least one chemical is required.';
-        }
-
-        if (
-            $this->exposures()->count() === 0 ||
-            $this->riskEvaluations()->count() === 0
-        ) {
-            $errors[] = 'Section E: Exposure and risk evaluation incomplete.';
-        }
-
-        if ($this->recommendations()->count() === 0) {
-            $errors[] = 'Section F: At least one recommendation is required.';
-        }
-
-        if (empty($this->assessor_conclusion)) {
-            $errors[] = 'Section G: Assessor conclusion is required.';
-        }
+        if (!$this->assessment_objective) $errors[] = 'Section A incomplete';
+        if (!$this->process_description || !$this->work_activities || !$this->chemical_usage_areas)
+            $errors[] = 'Section B incomplete';
+        if ($this->workUnits()->count() === 0) $errors[] = 'Section C incomplete';
+        if ($this->chemicals()->count() === 0) $errors[] = 'Section D incomplete';
+        if ($this->exposures()->count() === 0) $errors[] = 'Section E incomplete';
+        if ($this->recommendations()->count() === 0) $errors[] = 'Section F incomplete';
+        if (!$this->assessor_conclusion) $errors[] = 'Section G incomplete';
 
         return $errors;
     }
@@ -198,13 +167,73 @@ class Chra extends Model
         return empty($this->submissionErrors());
     }
 
-    public function adminChecklistComplete(): bool
+    /* =========================
+        TIMELINE (SAFE)
+    ========================= */
+
+    public function timeline(): array
     {
-        return
-            $this->admin_checked_sections &&
-            $this->admin_checked_chemicals &&
-            $this->admin_checked_risk &&
-            $this->admin_checked_recommendations &&
-            $this->admin_checked_conclusion;
+        $events = [];
+
+        $push = function ($label, $date, $by, $type, $note = null) use (&$events) {
+            if (!$date) return;
+
+            $events[] = [
+                'label' => $label,
+                'date'  => $date instanceof Carbon ? $date : Carbon::parse($date),
+                'by'    => $by,
+                'note'  => $note,
+                'type'  => $type,
+            ];
+        };
+
+        $push('CHRA created', $this->created_at, $this->assessor_name, 'created');
+
+        if ($this->submitted_at) {
+            $push('Submitted for approval', $this->submitted_at, $this->assessor_name, 'submitted');
+        }
+
+        if ($this->status === 'rejected') {
+            $push('Rejected by admin', $this->updated_at, 'Admin', 'rejected', $this->admin_reason);
+        }
+
+        if ($this->status === 'approved') {
+            $push('Approved by admin', $this->approved_at, optional($this->approver)->name ?? 'Admin', 'approved');
+        }
+
+        foreach ($this->deleteRequests as $req) {
+            $push('Delete requested', $req->created_at, optional($req->requester)->name ?? 'Assessor', 'delete-request', $req->reason);
+
+            if ($req->status !== 'pending' && $req->reviewed_at) {
+                $push(
+                    $req->status === 'approved' ? 'Delete approved' : 'Delete rejected',
+                    $req->reviewed_at,
+                    optional($req->reviewer)->name ?? 'Admin',
+                    'delete-' . $req->status,
+                    $req->admin_remark
+                );
+            }
+        }
+
+        return collect($events)
+            ->sortBy('date')
+            ->map(fn ($e) => [
+                ...$e,
+                'date_formatted' => $e['date']->format('d M Y · H:i'),
+            ])
+            ->values()
+            ->toArray();
     }
+
+    public function isSystem(): bool
+    {
+        return $this->source === 'system';
+    }
+
+    public function isUploaded(): bool
+    {
+        return $this->source === 'uploaded';
+    }
+
+
 }

@@ -13,7 +13,7 @@
 
         <!-- Left Image -->
         <div class="w-1/2 hidden md:block">
-            <img src="{{ asset('images/welcome.avif') }}"
+            <img src="{{ asset('images/welcome.jpeg') }}"
                  class="h-full w-full object-cover">
         </div>
 
@@ -63,13 +63,18 @@
 
         function updateLinks() {
             const role = roleSelect.value;
-            loginBtn.href = `/login?role=${role}`;
+
+            // Login does NOT depend on role
+            loginBtn.href = `/login`;
+
+            // Registration DOES depend on role
             registerBtn.href = `/register?role=${role}`;
         }
 
         roleSelect.addEventListener('change', updateLinks);
         updateLinks();
     </script>
+
 
 
 </body>

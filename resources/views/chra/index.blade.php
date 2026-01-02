@@ -18,16 +18,27 @@
     @endif
 
     <!-- HEADER -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4">
         <h1 class="text-xl font-semibold text-gray-800">
             CHRA Reports
         </h1>
 
-        <a href="{{ route('chra.create') }}"
-           class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700">
-            + New CHRA
-        </a>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('chra.delete.history', ['view' => 'deleted']) }}"
+            class="px-4 py-2 rounded border
+                    {{ request('view') === 'deleted'
+                            ? 'bg-red-600 text-white border-red-600'
+                            : 'bg-white text-gray-700 hover:bg-red-50' }}">
+                Deleted Registry
+            </a>
+
+            <a href="{{ route('chra.create') }}"
+            class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700">
+                + New CHRA
+            </a>
+        </div>
     </div>
+
 
     <!-- FILTER & SORT -->
     <div class="bg-white px-4 py-3 rounded shadow-sm">
@@ -121,17 +132,33 @@
                                 View
                             </a>
 
-                            @if($chra->deleteRequests->where('status','pending')->isEmpty())
-                                <button
-                                    onclick="openDeleteModal({{ $chra->id }})"
-                                    class="text-red-600 hover:underline text-xs">
-                                    Request Delete
-                                </button>
-                            @else
-                                <span class="text-gray-400 text-xs italic">
-                                    Request Sent
-                                </span>
+                            @if(in_array($chra->status, ['draft', 'rejected']))
+
+                                @php
+                                    $latestDelete = $chra->deleteRequests()->latest()->first();
+                                @endphp
+
+                                @if(!$latestDelete)
+                                    <button
+                                        onclick="openDeleteModal({{ $chra->id }})"
+                                        class="text-red-600 hover:underline text-xs">
+                                        Request Delete
+                                    </button>
+
+                                @elseif($latestDelete->status === 'pending')
+                                    <span class="text-gray-400 text-xs italic">
+                                        Delete Request Pending
+                                    </span>
+
+                                @elseif($latestDelete->status === 'rejected')
+                                    <span class="text-red-500 text-xs italic"
+                                        title="{{ $latestDelete->admin_remark }}">
+                                        Delete Rejected
+                                    </span>
+                                @endif
+
                             @endif
+
                         </td>
                     </tr>
                 @empty
