@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('chra_delete_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('chra_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('requested_by')->constrained('users');
+            $table->unsignedBigInteger('requested_by');
             $table->text('reason');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();

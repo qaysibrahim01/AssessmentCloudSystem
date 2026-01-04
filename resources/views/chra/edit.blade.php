@@ -189,82 +189,149 @@
     </section>
 
     <!-- =========================
-        SECTION E – EXPOSURE ASSESSMENT (FORM A–D)
+        SECTION E – EXPOSURE ASSESSMENT
     ========================== -->
-    <section id="section-e" class="bg-white p-6 rounded shadow-sm">
-            <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
-                <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
-                    E
-                </span>
-                Exposure Assessment (Form A–D)
-            </h2>
+    <section id="section-e" class="bg-white p-6 rounded shadow-sm space-y-8">
+
+        <!-- HEADER -->
+        <div class="flex items-center gap-3">
+            <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-semibold">
+                E
+            </span>
+            <div>
+                <h2 class="text-lg font-semibold">Exposure Assessment</h2>
+                <p class="text-xs text-gray-500">
+                    Assessment of chemical exposure based on work activity, route and frequency (Forms A–D)
+                </p>
+            </div>
+        </div>
 
         @if($chra->canEdit())
+        <!-- INPUT FORM -->
         <form method="POST"
             action="{{ route('chra.exposure.store', $chra) }}"
-            class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+            class="space-y-6 border rounded-lg p-5 bg-gray-50">
             @csrf
 
-            <select name="chra_work_unit_id" class="border px-2 py-1 rounded" required>
-                <option value="">Work Unit</option>
-                @foreach($chra->workUnits as $unit)
-                    <option value="{{ $unit->id }}">{{ $unit->name }}</option>
-                @endforeach
-            </select>
+            <!-- GROUP 1 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Work Unit
+                    </label>
+                    <select name="chra_work_unit_id" class="border rounded px-3 py-2 w-full" required>
+                        <option value="">Select Work Unit</option>
+                        @foreach($chra->workUnits as $unit)
+                            <option value="{{ $unit->id }}">{{ $unit->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <select name="chra_chemical_id" class="border px-2 py-1 rounded" required>
-                <option value="">Chemical</option>
-                @foreach($chra->chemicals as $chem)
-                    <option value="{{ $chem->id }}">{{ $chem->chemical_name }}</option>
-                @endforeach
-            </select>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Chemical
+                    </label>
+                    <select name="chra_chemical_id" class="border rounded px-3 py-2 w-full" required>
+                        <option value="">Select Chemical</option>
+                        @foreach($chra->chemicals as $chem)
+                            <option value="{{ $chem->id }}">{{ $chem->chemical_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <select name="exposure_route" class="border px-2 py-1 rounded" required>
-                <option value="">Exposure Route</option>
-                <option value="inhalation">Inhalation (Form A)</option>
-                <option value="dermal">Dermal (Form B)</option>
-                <option value="ingestion">Ingestion (Form C)</option>
-            </select>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Exposure Route
+                    </label>
+                    <select name="exposure_route" class="border rounded px-3 py-2 w-full" required>
+                        <option value="">Select Route</option>
+                        <option value="inhalation">Inhalation (Form A)</option>
+                        <option value="dermal">Dermal (Form B)</option>
+                        <option value="ingestion">Ingestion (Form C)</option>
+                    </select>
+                </div>
+            </div>
 
-            <input name="task" placeholder="Task"
-                class="border px-2 py-1 rounded">
+            <!-- GROUP 2 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Task Description
+                    </label>
+                    <input name="task" class="border rounded px-3 py-2 w-full"
+                        placeholder="e.g. Mixing, spraying, cleaning">
+                </div>
 
-            <input name="exposure_frequency"
-                placeholder="Frequency"
-                class="border px-2 py-1 rounded">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Exposure Frequency
+                    </label>
+                    <input name="exposure_frequency" class="border rounded px-3 py-2 w-full"
+                        placeholder="e.g. Daily / Weekly">
+                </div>
 
-            <input name="exposure_duration"
-                placeholder="Duration"
-                class="border px-2 py-1 rounded">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Exposure Duration
+                    </label>
+                    <input name="exposure_duration" class="border rounded px-3 py-2 w-full"
+                        placeholder="e.g. 2 hours per shift">
+                </div>
+            </div>
 
-            <select name="control_adequacy"
-                    class="border px-2 py-1 rounded">
-                <option value="">Control Adequacy</option>
-                <option value="adequate">Adequate</option>
-                <option value="inadequate">Inadequate</option>
-            </select>
+            <!-- GROUP 3 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Control Adequacy
+                    </label>
+                    <select name="control_adequacy" class="border rounded px-3 py-2 w-full">
+                        <option value="">Select</option>
+                        <option value="adequate">Adequate</option>
+                        <option value="inadequate">Inadequate</option>
+                    </select>
+                </div>
 
-            <input type="number"
-                name="exposure_rating"
-                min="1" max="5"
-                placeholder="Exposure Rating (1–5)"
-                class="border px-2 py-1 rounded"
-                required>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Exposure Rating
+                    </label>
+                    <input type="number" name="exposure_rating" min="1" max="5"
+                        class="border rounded px-3 py-2 w-full"
+                        placeholder="1 (Low) – 5 (High)" required>
+                </div>
 
-            <textarea name="existing_control"
-                    placeholder="Existing Control Measures"
-                    class="border rounded px-3 py-2 w-full leading-relaxed resize-y"></textarea>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Hazard Rating
+                    </label>
 
-            <div class="md:col-span-3 text-right">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">
+                    <input type="number"
+                        name="hazard_rating_display"
+                        class="border rounded px-3 py-2 w-full bg-gray-100"
+                        readonly
+                        id="hazard-rating-display"
+                        placeholder="Auto-calculated">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Existing Control Measures
+                    </label>
+                    <textarea name="existing_control" rows="2"
+                            class="border rounded px-3 py-2 w-full resize-y"
+                            placeholder="Engineering, administrative, PPE"></textarea>
+                </div>
+            </div>
+
+            <!-- ACTION -->
+            <div class="flex justify-end">
+                <button class="bg-blue-600 text-white px-5 py-2 rounded">
                     Add Exposure Assessment
                 </button>
             </div>
         </form>
         @endif
-
-
-
 
         <!-- RESULTS TABLE -->
         <p class="text-xs text-gray-500 mb-2">
@@ -287,8 +354,9 @@
 
                 <tbody class="bg-white divide-y">
                     @forelse($chra->exposures as $exp)
+
                         @php
-                            $risk = $exp->riskEvaluation->risk_level ?? null;
+                            $risk = optional($exp->riskEvaluation)->risk_level;
                         @endphp
 
                         <tr class="hover:bg-gray-50">
@@ -305,11 +373,11 @@
                             </td>
 
                             <td class="px-3 py-2 border text-center">
-                                {{ $exp->riskEvaluation->exposure_rating }}
+                                {{ optional($exp->riskEvaluation)->exposure_rating ?? '-' }}
                             </td>
 
                             <td class="px-3 py-2 border text-center">
-                                {{ $exp->riskEvaluation->hazard_rating }}
+                                {{ optional($exp->riskEvaluation)->hazard_rating ?? '-' }}
                             </td>
 
                             <!-- RISK LEVEL -->
@@ -322,18 +390,21 @@
                                     <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-700">
                                         Moderate
                                     </span>
-                                @else
+                                @elseif($risk === 'low')
                                     <span class="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700">
                                         Low
                                     </span>
+                                @else
+                                    <span class="text-gray-400 text-xs">–</span>
                                 @endif
                             </td>
 
                             <!-- ACTION PRIORITY -->
                             <td class="px-3 py-2 border text-center font-medium">
-                                {{ $exp->riskEvaluation->action_priority }}
+                                {{ optional($exp->riskEvaluation)->action_priority ?? '-' }}
                             </td>
                         </tr>
+
                     @empty
                         <tr>
                             <td colspan="7" class="px-4 py-6 text-center text-gray-500">
@@ -342,6 +413,7 @@
                         </tr>
                     @endforelse
                 </tbody>
+
             </table>
         </div>
 
@@ -545,6 +617,22 @@ document.querySelectorAll(
         }, 1500);
     });
 });
+
+
+const chemicalHazards = @json(
+    $chra->chemicals->mapWithKeys(fn($c) => [
+        $c->id => $c->derived_hazard_rating ?? 1
+    ])
+);
+
+const chemicalSelect = document.querySelector('[name="chra_chemical_id"]');
+const hazardInput = document.getElementById('hazard-rating-display');
+
+if (chemicalSelect && hazardInput) {
+    chemicalSelect.addEventListener('change', function () {
+        hazardInput.value = chemicalHazards[this.value] ?? '';
+    });
+}
 </script>
 
 

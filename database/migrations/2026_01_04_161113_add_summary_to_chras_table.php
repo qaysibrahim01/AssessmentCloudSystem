@@ -12,15 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('chras', function (Blueprint $table) {
-            $table->string('assessor_registration_no')->nullable()->after('assessor_name');
+            $table->text('summary')->nullable();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('chras', function (Blueprint $table) {
-            $table->dropColumn('assessor_registration_no');
+            //
         });
     }
-
 };

@@ -25,13 +25,20 @@
         @endif
     </a>
 
-    <a href="{{ route('admin.chra.index', ['view' => 'deleted']) }}"
-       class="px-4 py-2 rounded border
-              {{ request('view') === 'deleted'
-                    ? 'bg-red-600 text-white border-red-600'
-                    : 'bg-white text-gray-700 hover:bg-red-50' }}">
-        Deleted Registry
-    </a>
+    <div class="flex items-center gap-4">
+        <a href="{{ route('admin.chra.index', ['view' => 'deleted']) }}"
+        class="px-4 py-2 rounded border
+                {{ request('view') === 'deleted'
+                        ? 'bg-red-600 text-white border-red-600'
+                        : 'bg-white text-gray-700 hover:bg-red-50' }}">
+            Deleted Registry
+        </a>
+
+        <a href="{{ route('admin.chra.uploaded.create') }}"
+        class="bg-green-600 text-white px-4 py-2 rounded text-sm">
+            + Upload CHRA PDF
+        </a>
+    </div>
 </div>
 
 <div class="flex justify-between items-center mb-4">
@@ -39,10 +46,6 @@
         Admin – CHRA Reviews
     </h1>
 
-    <a href="{{ route('admin.chra.uploaded.create') }}"
-       class="bg-green-600 text-white px-4 py-2 rounded text-sm">
-        + Upload CHRA PDF
-    </a>
 </div>
 
 
@@ -135,7 +138,7 @@
                 </td>
 
                 <td class="px-3 py-1.5 text-right">
-                    <a href="{{ route('admin.chra.show', $chra) }}"
+                    <a href="{{ route('admin.chra.show', [$chra, 'mode' => 'normal']) }}"
                     class="text-blue-600 hover:underline">
                         Review
                     </a>
@@ -154,6 +157,82 @@
     </table>
 </div>
 @endif
+
+@if(request('view') === 'delete')
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="w-full text-xs">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-3 py-2 text-left">ID</th>
+                <th class="px-3 py-2 text-left">Company</th>
+                <th class="px-3 py-2 text-left">Requested By</th>
+                <th class="px-3 py-2 text-left">Reason</th>
+                <th class="px-3 py-2 text-right">Action</th>
+            </tr>
+        </thead>
+
+        <tbody class="divide-y">
+        @forelse($requests as $req)
+            <tr>
+                <td class="px-3 py-2">#{{ $req->chra_id }}</td>
+                <td class="px-3 py-2">{{ $req->chra->company_name }}</td>
+                <td class="px-3 py-2">{{ $req->requester->name }}</td>
+                <td class="px-3 py-2">{{ $req->reason }}</td>
+                <td class="px-3 py-2 text-right">
+                    <a href="{{ route('admin.chra.show', [$req->chra_id, 'mode' => 'delete']) }}"
+                    class="text-blue-600 hover:underline">
+                        Review
+                    </a>
+                </td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="5" class="px-3 py-6 text-center text-gray-500">
+                    No pending delete requests
+                </td>
+            </tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+@endif
+
+@if(request('view') === 'deleted')
+<div class="bg-white rounded shadow overflow-hidden">
+    <table class="w-full text-xs">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-3 py-2 text-left">CHRA ID</th>
+                <th class="px-3 py-2 text-left">Company</th>
+                <th class="px-3 py-2 text-left">Requested By</th>
+                <th class="px-3 py-2 text-left">Deleted By</th>
+                <th class="px-3 py-2 text-left">Deleted At</th>
+            </tr>
+        </thead>
+
+        <tbody class="divide-y">
+        @forelse($deletedChras as $row)
+            <tr>
+                <td class="px-3 py-2">#{{ $row->chra_id }}</td>
+                <td class="px-3 py-2">{{ $row->company_name }}</td>
+                <td class="px-3 py-2">{{ optional($row->requester)->name }}</td>
+                <td class="px-3 py-2">{{ optional($row->deleter)->name }}</td>
+                <td class="px-3 py-2">
+                    {{ optional($row->deleted_at)->format('d M Y') }}
+                </td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="5" class="px-3 py-6 text-center text-gray-500">
+                    No deleted CHRA records
+                </td>
+            </tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+@endif
+
 
 {{-- ================= UPLOAD MODAL ================= --}}
 <div id="uploadModal"

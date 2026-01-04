@@ -60,4 +60,13 @@ class CommitteeChraController extends Controller
             '.pdf'
         );
     }
+
+    public function showUploaded(Chra $chra)
+    {
+        abort_if(!$chra->isUploaded(), 404);
+
+        return view('committee.chra.show-uploaded', compact('chra'));
+    }
+
+
 }

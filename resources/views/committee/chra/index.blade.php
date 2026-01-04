@@ -81,10 +81,17 @@
                             {{ optional($chra->approved_at)->format('d M Y') }}
                         </td>
                         <td class="px-3 py-1.5 text-right">
-                            <a href="{{ route('committee.chra.show', $chra) }}"
-                               class="text-blue-600 hover:underline">
-                                View
-                            </a>
+                            @if($chra->isUploaded())
+                                <a href="{{ route('committee.chra.show.uploaded', $chra) }}"
+                                class="text-blue-600 hover:underline">
+                                    View PDF
+                                </a>
+                            @else
+                                <a href="{{ route('committee.chra.show', $chra) }}"
+                                class="text-blue-600 hover:underline">
+                                    View
+                                </a>
+                            @endif
                         </td>
                     </tr>
                 @empty

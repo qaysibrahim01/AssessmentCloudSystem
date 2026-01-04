@@ -73,7 +73,11 @@ class Chra extends Model
 
     public function deleteRequests()
     {
-        return $this->hasMany(ChraDeleteRequest::class);
+        return $this->hasMany(
+            \App\Models\ChraDeleteRequest::class,
+            'chra_id',   // foreign key
+            'id'         // local key
+        );
     }
 
     public function exposures()
@@ -103,11 +107,6 @@ class Chra extends Model
     public function isLocked(): bool
     {
         return in_array($this->status, ['pending', 'approved']);
-    }
-
-    public function canEdit(): bool
-    {
-        return ! $this->isLocked();
     }
 
     /* =========================
@@ -233,6 +232,26 @@ class Chra extends Model
     public function isUploaded(): bool
     {
         return $this->source === 'uploaded';
+    }
+
+    public function hasPendingDeleteRequest(): bool
+    {
+        return $this->deleteRequests()
+            ->where('status', 'pending')
+            ->exists();
+    }
+
+    public function canEdit(): bool
+    {
+        if ($this->isLocked()) {
+            return false;
+        }
+
+        if ($this->hasPendingDeleteRequest()) {
+            return false;
+        }
+
+        return true;
     }
 
 

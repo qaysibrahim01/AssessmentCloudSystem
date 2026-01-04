@@ -22,9 +22,9 @@
                 Back
             </a>
 
-            @if(in_array($chra->status, ['draft', 'rejected']))
+            @if($chra->canEdit())
                 <a href="{{ route('chra.edit', $chra) }}"
-                   class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs">
+                class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs">
                     Edit
                 </a>
             @endif
@@ -35,9 +35,17 @@
                     Download PDF
                 </a>
             @endif
-        </div>
-    </div>
 
+
+
+        </div>
+
+    </div>
+            @if($chra->hasPendingDeleteRequest())
+                <div class="bg-orange-50 border border-orange-300 p-3 rounded text-xs text-orange-700">
+                    A delete request has been submitted. Editing is disabled until the request is reviewed by admin.
+                </div>
+            @endif
     <!-- STATUS -->
     <div>
         @if($chra->status === 'draft')
@@ -116,7 +124,7 @@
 
 
     <!-- ACTION -->
-    @if(in_array($chra->status, ['draft', 'rejected']))
+    @if($chra->canEdit())
         <form method="POST"
               action="{{ route('chra.submit', $chra) }}"
               class="text-right"

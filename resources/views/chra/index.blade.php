@@ -17,6 +17,18 @@
         </div>
     @endif
 
+    @if ($errors->any())
+        <div class="bg-red-100 text-red-700 px-4 py-2 rounded text-sm">
+            <ul class="list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+
+
     <!-- HEADER -->
     <div class="flex items-center justify-between gap-4">
         <h1 class="text-xl font-semibold text-gray-800">
@@ -25,7 +37,7 @@
 
         <div class="flex items-center gap-4">
             <a href="{{ route('chra.delete.history', ['view' => 'deleted']) }}"
-            class="px-4 py-2 rounded border
+            class="px-3 py-1.5 text-xs rounded border
                     {{ request('view') === 'deleted'
                             ? 'bg-red-600 text-white border-red-600'
                             : 'bg-white text-gray-700 hover:bg-red-50' }}">
@@ -127,16 +139,27 @@
                         </td>
 
                         <td class="px-3 py-1.5 text-right space-x-2">
-                            <a href="{{ route('chra.show', $chra) }}"
-                               class="text-blue-600 hover:underline">
-                                View
-                            </a>
+                            @if($chra->isUploaded())
+                                <a href="{{ route('chra.show.uploaded', $chra) }}"
+                                class="text-blue-600 hover:underline">
+                                    View PDF
+                                </a>
+                            @else
+                                <a href="{{ route('chra.show', $chra) }}"
+                                class="text-blue-600 hover:underline">
+                                    View
+                                </a>
+                            @endif
 
                             @if(in_array($chra->status, ['draft', 'rejected']))
 
                                 @php
-                                    $latestDelete = $chra->deleteRequests()->latest()->first();
+                                    $latestDelete = $chra->deleteRequests()
+                                        ->where('status', 'pending')
+                                        ->latest()
+                                        ->first();
                                 @endphp
+
 
                                 @if(!$latestDelete)
                                     <button
@@ -151,10 +174,12 @@
                                     </span>
 
                                 @elseif($latestDelete->status === 'rejected')
-                                    <span class="text-red-500 text-xs italic"
-                                        title="{{ $latestDelete->admin_remark }}">
-                                        Delete Rejected
-                                    </span>
+                                    <button
+                                        onclick="openDeleteModal({{ $chra->id }})"
+                                        class="text-red-600 hover:underline text-xs"
+                                        title="Previous request was rejected: {{ $latestDelete->admin_remark }}">
+                                        Request Delete Again
+                                    </button>
                                 @endif
 
                             @endif
@@ -199,7 +224,8 @@
                     Cancel
                 </button>
 
-                <button class="bg-red-600 text-white px-4 py-1 rounded text-sm">
+                <button type="submit"
+                        class="bg-red-600 text-white px-4 py-1 rounded text-sm">
                     Submit
                 </button>
             </div>
@@ -207,18 +233,21 @@
     </div>
 </div>
 
+
+
 <script>
 function openDeleteModal(chraId) {
     const form = document.getElementById('deleteForm');
     form.action = `/chra/${chraId}/request-delete`;
-
     document.getElementById('deleteModal').classList.remove('hidden');
     document.getElementById('deleteModal').classList.add('flex');
 }
 
 function closeDeleteModal() {
     document.getElementById('deleteModal').classList.add('hidden');
+    document.getElementById('deleteModal').classList.remove('flex');
 }
 </script>
+
 
 @endsection

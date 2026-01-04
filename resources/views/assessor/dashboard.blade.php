@@ -38,7 +38,7 @@
 
         <!-- HIRARC CARD (DISABLED) -->
         <div
-            class="bg-white rounded-xl border p-6 shadow-sm opacity-50 cursor-not-allowed">
+            class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-pointer">
 
             <h3 class="text-lg font-semibold text-gray-700">
                 HIRARC
@@ -55,7 +55,7 @@
 
         <!-- NRA CARD (DISABLED) -->
         <div
-            class="bg-white rounded-xl border p-6 shadow-sm opacity-50 cursor-not-allowed">
+            class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-pointer">
 
             <h3 class="text-lg font-semibold text-gray-700">
                 NRA

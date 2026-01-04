@@ -11,7 +11,7 @@
         </h1>
 
         <a href="{{ route('chra.index') }}"
-           class="border px-4 py-2 rounded hover:bg-gray-100">
+           class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded">
             ← Back to CHRA
         </a>
     </div>

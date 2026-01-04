@@ -31,6 +31,24 @@
 
     </div>
 
+            @if($chra->hasPendingDeleteRequest())
+                <div class="bg-orange-50 border border-orange-300 p-3 rounded text-xs text-orange-700">
+                    A delete request has been submitted. Editing is disabled until the request is reviewed by admin.
+                </div>
+            @endif
+
+        <div class="mb-3">
+            <label class="block text-xs text-gray-500 mb-1">
+                Competent Person Registration No (DOSH)
+            </label>
+
+            <p class="whitespace-pre-line">
+                {{ $chra->assessor_registration_no ?: '-' }}
+            </p>
+
+        </div>
+
+
     <!-- SECTION A -->
     <section class="bg-white border rounded p-5">
         <h2 class="font-semibold mb-2">
@@ -244,10 +262,51 @@
         </p>
     </section>
 
+
+@if($mode === 'delete' && $deleteRequest)
+    <div class="bg-yellow-50 border border-yellow-300 p-4 rounded mt-6">
+        <h3 class="font-semibold mb-2 text-sm">
+            Delete Request Review
+        </h3>
+
+        <p class="text-xs mb-3">
+            <strong>Requested by:</strong>
+            {{ $deleteRequest->requester->name }}<br>
+
+            <strong>Reason:</strong>
+            {{ $deleteRequest->reason }}
+        </p>
+
+        <div class="flex gap-3">
+            <form method="POST"
+                  action="{{ route('admin.chra.delete.approve', $deleteRequest) }}">
+                @csrf
+                <button class="bg-red-600 text-white px-4 py-2 rounded">
+                    Approve Delete
+                </button>
+            </form>
+
+            <form method="POST"
+                  action="{{ route('admin.chra.delete.reject', $deleteRequest) }}">
+                @csrf
+                <input name="admin_remark"
+                       placeholder="Reason for keeping CHRA"
+                       class="border px-3 py-2 rounded mr-2"
+                       required>
+
+                <button class="bg-green-600 text-white px-4 py-2 rounded">
+                    Keep CHRA
+                </button>
+            </form>
+        </div>
+    </div>
+@endif
+
+
     <!-- =========================
         ADMIN ACTIONS
     ========================== -->
-    @if($chra->status === 'pending')
+    @if($mode === 'normal' && $chra->status === 'pending' && ! $deleteRequest)
         <div class="flex gap-3 pt-4">
             <form method="POST" action="{{ route('admin.chra.approve', $chra) }}">
                 @csrf

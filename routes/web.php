@@ -105,6 +105,11 @@ Route::middleware([
                 [AdminUploadedChraController::class, 'store']
             )->name('chra.uploaded.store');
 
+            Route::delete('/chra/{chra}/uploaded-delete',
+                [AdminUploadedChraController::class, 'destroy']
+            )->name('chra.uploaded.destroy');
+
+
         });
 
     /*
@@ -129,15 +134,25 @@ Route::middleware([
             Route::post('/', [ChraController::class, 'store'])->name('store');
 
             // =========================
-            // DYNAMIC ROUTES LAST
+            // UPLOADED PDF VIEW
             // =========================
-            Route::get('/{chra}', [ChraController::class, 'show'])
-                ->middleware('can:view,chra')
-                ->name('show');
+            Route::get('/{chra}/uploaded',
+                [ChraController::class, 'showUploaded']
+            )->middleware('can:view,chra')
+            ->name('show.uploaded');
 
-            Route::get('/{chra}/edit', [ChraController::class, 'edit'])
-                ->middleware('can:update,chra')
-                ->name('edit');
+            // =========================
+            // MAIN CHRA ROUTES
+            // =========================
+            Route::get('/{chra}',
+                [ChraController::class, 'show']
+            )->middleware('can:view,chra')
+            ->name('show');
+
+            Route::get('/{chra}/edit',
+                [ChraController::class, 'edit']
+            )->middleware('can:update,chra')
+            ->name('edit');
 
             Route::post('/{chra}/update-sections',
                 [ChraController::class, 'updateSections']
@@ -163,7 +178,44 @@ Route::middleware([
                 [ChraController::class, 'downloadPdf']
             )->middleware('can:view,chra')
             ->name('download');
+
+            // =========================
+            // CHRA SUB-RESOURCES
+            // =========================
+            Route::post('/{chra}/work-units',
+                [\App\Http\Controllers\ChraWorkUnitController::class, 'store']
+            )->name('workunit');
+
+            Route::delete('/work-units/{unit}',
+                [\App\Http\Controllers\ChraWorkUnitController::class, 'destroy']
+            )->name('workunit.delete');
+
+            Route::post('/{chra}/chemicals',
+                [\App\Http\Controllers\ChraChemicalController::class, 'store']
+            )->name('chemical');
+
+            Route::delete('/chemicals/{chemical}',
+                [\App\Http\Controllers\ChraChemicalController::class, 'destroy']
+            )->name('chemical.delete');
+
+            Route::post('/{chra}/exposures',
+                [\App\Http\Controllers\ChraExposureController::class, 'store']
+            )->name('exposure.store');
+
+            Route::post('/{chra}/recommendations',
+                [\App\Http\Controllers\ChraRecommendationController::class, 'store']
+            )->name('recommendation');
+
+            Route::delete('/recommendations/{rec}',
+                [\App\Http\Controllers\ChraRecommendationController::class, 'destroy']
+            )->name('recommendation.delete');
+
+            Route::post('/{chra}/autosave',
+                [\App\Http\Controllers\ChraAutosaveController::class, 'store']
+            )->name('autosave');
+
         });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -183,6 +235,12 @@ Route::middleware([
                 [\App\Http\Controllers\Committee\CommitteeChraController::class, 'index']
             )->name('chra.index');
 
+            // 🔹 Uploaded PDF view (MUST be before {chra})
+            Route::get('/chra/{chra}/uploaded',
+                [\App\Http\Controllers\Committee\CommitteeChraController::class, 'showUploaded']
+            )->middleware('can:view,chra')
+            ->name('chra.show.uploaded');
+
             Route::get('/chra/{chra}',
                 [\App\Http\Controllers\Committee\CommitteeChraController::class, 'show']
             )->middleware('can:view,chra')
@@ -192,7 +250,6 @@ Route::middleware([
                 [\App\Http\Controllers\Committee\CommitteeChraController::class, 'downloadPdf']
             )->middleware('can:view,chra')
             ->name('chra.pdf');
-
         });
 
 

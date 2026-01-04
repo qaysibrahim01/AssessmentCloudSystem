@@ -17,13 +17,31 @@ class ChraController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Chra::where('user_id', Auth::id());
+        $query = Chra::query()
+            ->where(function ($q) {
+                $q->where('user_id', auth()->id())   // assessor-created
+                ->orWhere('source', 'uploaded');  // admin-uploaded
+            })
+            ->with(['deleteRequests' => function ($q) {
+                $q->latest();
+            }]);
 
+        // FILTER: STATUS
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $chras = $query->latest()->get();
+        // SORTING
+        if ($request->filled('sort_by')) {
+            $query->orderBy(
+                $request->sort_by,
+                $request->get('sort_order', 'desc')
+            );
+        } else {
+            $query->latest();
+        }
+
+        $chras = $query->get();
 
         return view('chra.index', compact('chras'));
     }
@@ -72,8 +90,11 @@ class ChraController extends Controller
     {
         $this->authorize('update', $chra);
         abort_if($chra->isLocked(), 403);
+        abort_if($chra->hasPendingDeleteRequest(), 403);
 
         $validated = $request->validate([
+            'assessor_registration_no' => 'nullable|string|max:255',
+
             'assessment_objective'     => 'nullable|string',
             'process_description'      => 'nullable|string',
             'work_activities'          => 'nullable|string',
@@ -105,6 +126,9 @@ class ChraController extends Controller
         abort_if(!in_array($chra->status, ['draft', 'rejected']), 403);
 
         $errors = $chra->submissionErrors();
+        if (!$chra->assessor_registration_no)
+            $errors[] = 'Competent Person Registration No (DOSH) not provided';
+
         if (!empty($errors)) {
             return redirect()
                 ->route('chra.edit', $chra)
@@ -132,18 +156,22 @@ class ChraController extends Controller
         }
 
         $validated = $request->validate([
-            'reason' => 'required|string|min:5',
+            'reason' => 'required|string|min:3',
         ]);
 
         ChraDeleteRequest::create([
             'chra_id'      => $chra->id,
-            'requested_by' => Auth::id(),
+            'requested_by' => auth()->id(),
             'reason'       => $validated['reason'],
             'status'       => 'pending',
         ]);
 
-        return back()->with('success', 'Delete request submitted to admin.');
+        return redirect()
+            ->route('chra.index')
+            ->with('success', 'Delete request submitted and sent to admin.');
     }
+
+
 
     public function downloadPdf(Chra $chra)
     {
@@ -170,4 +198,16 @@ class ChraController extends Controller
             '.pdf'
         );
     }
+
+    public function showUploaded(Chra $chra)
+    {
+        $this->authorize('view', $chra);
+
+        abort_if(!$chra->isUploaded(), 404);
+
+        return view('chra.show-uploaded', compact('chra'));
+    }
+
+
+
 }

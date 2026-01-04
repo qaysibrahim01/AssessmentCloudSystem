@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Chra;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AdminUploadedChraController extends Controller
 {
@@ -26,9 +27,11 @@ class AdminUploadedChraController extends Controller
 
         $filename = 'UPLOADED_CHRA_' . now()->format('Ymd_His') . '.pdf';
 
+        // ✅ IMPORTANT: use public disk
         $path = $request->file('pdf')->storeAs(
             'chra_uploads',
-            $filename
+            $filename,
+            'public'
         );
 
         Chra::create([
@@ -49,4 +52,22 @@ class AdminUploadedChraController extends Controller
             ->route('admin.chra.index')
             ->with('success', 'Uploaded CHRA report created successfully.');
     }
+
+
+    public function destroy(Chra $chra)
+    {
+        abort_if($chra->source !== 'uploaded', 403);
+
+        if ($chra->uploaded_pdf_path) {
+            Storage::delete($chra->uploaded_pdf_path);
+        }
+
+        $chra->delete();
+
+        return redirect()
+            ->route('admin.chra.index')
+            ->with('success', 'Uploaded CHRA deleted successfully.');
+    }
+
+
 }

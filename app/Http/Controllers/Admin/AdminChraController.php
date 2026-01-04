@@ -107,9 +107,16 @@ class AdminChraController extends Controller
         ));
     }
 
-    public function show(Chra $chra)
+    public function show(Request $request, Chra $chra)
     {
-        $this->authorize('view', $chra);
+        $mode = $request->get('mode', 'normal');
+
+        // Uploaded CHRA → different view
+        if ($chra->isUploaded()) {
+            return view('admin.chra.show-uploaded', [
+                'chra' => $chra
+            ]);
+        }        
 
         $chra->load([
             'workUnits',
@@ -118,9 +125,17 @@ class AdminChraController extends Controller
             'exposures.chemical',
             'exposures.riskEvaluation',
             'recommendations',
+            'deleteRequests' => fn ($q) =>
+                $q->where('status', 'pending')->latest()
         ]);
 
-        return view('admin.chra.show', compact('chra'));
+        $deleteRequest = $chra->deleteRequests->first();
+
+        return view('admin.chra.show', compact(
+            'chra',
+            'deleteRequest',
+            'mode'
+        ));
     }
 
     public function approve(Chra $chra)
