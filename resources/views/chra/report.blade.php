@@ -10,7 +10,7 @@
         </tr>
         <tr>
             <th>DOSH Reg. No.</th>
-            <td>{{ $chra->assessor_registration_no -- '—' }}</td>
+            <td>{{ $chra->assessor_registration_no ?? '—' }}</td>
         </tr>
         <tr>
             <th>Assessment address</th>
@@ -18,7 +18,7 @@
         </tr>
         <tr>
             <th>Business Nature</th>
-            <td>{{ $chra->business_nature -- '—' }}</td>
+            <td>{{ $chra->business_nature ?? '—' }}</td>
         </tr>
         <tr>
             <th>Assessor</th>
@@ -26,15 +26,15 @@
         </tr>
         <tr>
             <th>Assisted by</th>
-            <td>{{ $chra->assisted_by -- '—' }}</td>
+            <td>{{ $chra->assisted_by ?? '—' }}</td>
         </tr>
         <tr>
             <th>DOSH Ref. Num.</th>
-            <td>{{ $chra->dosh_ref_num -- '—' }}</td>
+            <td>{{ $chra->dosh_ref_num ?? '—' }}</td>
         </tr>
         <tr>
             <th>Assessment date</th>
-            <td>{{ optional($chra->assessment_date)->format('d M Y') -- '—' }}</td>
+            <td>{{ optional($chra->assessment_date)->format('d M Y') ?? '—' }}</td>
         </tr>
     </table>
 </section>
@@ -42,10 +42,10 @@
 <section>
     <h2>2.0 Objective</h2>
     <p><strong>General Objective</strong><br>
-        {{ $chra->general_objective -: '—' }}
+        {{ $chra->general_objective ?? '—' }}
     </p>
     <p><strong>Specified Objectives</strong></p>
-    @php $specified = array_filter($chra->specified_objectives -- []); @endphp
+    @php $specified = array_filter($chra->specified_objectives ?? []); @endphp
     @if(count($specified))
         <ol type="a">
             @foreach($specified as $item)
@@ -60,19 +60,19 @@
 <section>
     <h2>3.0 Process Description</h2>
     <p><strong>Overview</strong><br>
-        {{ $chra->process_description -: '—' }}
+        {{ $chra->process_description ?? '—' }}
     </p>
 
     <p><strong>3.1 General description of work activities</strong><br>
-        {{ $chra->work_activities -: '—' }}
+        {{ $chra->work_activities ?? '—' }}
     </p>
 
     <p><strong>3.2 Description of the work activities which involves chemicals</strong><br>
-        {{ $chra->chemical_usage_areas -: '—' }}
+        {{ $chra->chemical_usage_areas ?? '—' }}
     </p>
 
     <p><strong>3.3 Description of each work area that involves chemicals</strong><br>
-        {{ $chra->assessment_location -: '—' }}
+        {{ $chra->assessment_location ?? '—' }}
     </p>
 </section>
 
@@ -124,8 +124,8 @@
             @forelse($chra->exposures as $exp)
                 @if($exp->riskEvaluation)
                     <tr>
-                        <td>{{ $exp->workUnit->name -- '-' }}</td>
-                        <td>{{ $exp->chemical->chemical_name -- '-' }}</td>
+                        <td>{{ $exp->workUnit->name ?? '-' }}</td>
+                        <td>{{ $exp->chemical->chemical_name ?? '-' }}</td>
                         <td>{{ $exp->riskEvaluation->exposure_rating }}</td>
                         <td>{{ $exp->riskEvaluation->hazard_rating }}</td>
                         <td>{{ strtoupper($exp->riskEvaluation->risk_level) }}</td>
@@ -143,7 +143,7 @@
 
 <section>
     <h2>7.0 Discussion</h2>
-    <p>{{ $chra->assessor_conclusion -: '—' }}</p>
+    <p>{{ $chra->assessor_conclusion ?? '—' }}</p>
 </section>
 
 <section>
@@ -179,15 +179,15 @@
     <table>
         <tr>
             <th>Overall Risk Profile</th>
-            <td>{{ $chra->highestRiskLevel() -- 'Not assessed' }}</td>
+            <td>{{ $chra->highestRiskLevel() ?? 'Not assessed' }}</td>
         </tr>
         <tr>
             <th>Recommended Action Priority</th>
-            <td>{{ $chra->recommendedActionPriority() -- 'Not assessed' }}</td>
+            <td>{{ $chra->recommendedActionPriority() ?? 'Not assessed' }}</td>
         </tr>
         <tr>
             <th>Implementation Timeframe</th>
-            <td>{{ $chra->implementation_timeframe -- '—' }}</td>
+            <td>{{ $chra->implementation_timeframe ?? '—' }}</td>
         </tr>
     </table>
 </section>
