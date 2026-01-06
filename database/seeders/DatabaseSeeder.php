@@ -11,20 +11,18 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {
-        $adminEmail = 'admin@example.com';
+{
+    \App\Models\User::updateOrCreate(
+        ['email' => 'admin@example.com'],
+        [
+            'name' => 'Admin',
+            'password' => bcrypt('12345678'),
+            'role' => 'admin',
+            'approval_status' => 'approved',
+            'approved_at' => now(),
+            'email_verified_at' => now(),
+        ]
+    );
+}
 
-        \App\Models\User::firstOrCreate(
-            ['email' => $adminEmail],
-            [
-                'name' => 'admin',
-                'password' => bcrypt('12345678'),
-                'role' => 'admin',
-                'approval_status' => 'approved',
-                'is_approved' => true,
-                'approved_at' => now(),
-                'approval_email_sent_at' => null,
-            ]
-        );
-    }
 }
