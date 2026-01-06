@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Contracts\RegisterResponse;
 
 
 class FortifyServiceProvider extends ServiceProvider
@@ -59,6 +60,14 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             return route('assessor.dashboard');
+        });
+
+        $this->app->instance(RegisterResponse::class, new class implements RegisterResponse {
+            public function toResponse($request)
+            {
+                return redirect()->route('login')
+                    ->with('status', 'Your registration was submitted. Your account is pending admin approval.');
+            }
         });
 
     }

@@ -95,16 +95,39 @@ class ChraController extends Controller
         $validated = $request->validate([
             'assessor_registration_no' => 'nullable|string|max:255',
 
-            'assessment_objective'     => 'nullable|string',
+            'general_objective'        => 'nullable|string',
+            'specified_objectives'     => 'array',
+            'specified_objectives.*'   => 'nullable|string',
             'process_description'      => 'nullable|string',
             'work_activities'          => 'nullable|string',
             'chemical_usage_areas'     => 'nullable|string',
+            'assessment_location'      => 'nullable|string',
             'overall_risk_profile'     => 'nullable|in:Low,Moderate,High',
             'assessor_conclusion'      => 'nullable|string',
             'implementation_timeframe' => 'nullable|string',
+            'business_nature'          => 'nullable|string|max:255',
+            'assisted_by'              => 'nullable|string|max:255',
+            'dosh_ref_num'             => 'nullable|string|max:255',
         ]);
 
-        $chra->update($validated);
+        $objectives = collect($request->input('specified_objectives', []))
+            ->map(fn ($v) => trim($v))
+            ->filter()
+            ->take(5)
+            ->values()
+            ->all();
+
+        if (count($objectives) < 2) {
+            return back()
+                ->withErrors(['specified_objectives' => 'Please provide at least two specified objectives.'])
+                ->withInput();
+        }
+
+        $chra->update([
+            ...$validated,
+            'assessment_location'  => $validated['assessment_location'] ?? $chra->assessment_location,
+            'specified_objectives' => $objectives,
+        ]);
 
         return redirect()->route('chra.edit', $chra)->withFragment('section-g');
     }

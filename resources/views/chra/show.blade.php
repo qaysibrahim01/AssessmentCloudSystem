@@ -125,6 +125,9 @@
 
     <!-- ACTION -->
     @if($chra->canEdit())
+        <p class="text-xs text-red-600 text-right mb-1">
+            * Mandatory CHRA sections must be completed before submission.
+        </p>
         <form method="POST"
               action="{{ route('chra.submit', $chra) }}"
               class="text-right"

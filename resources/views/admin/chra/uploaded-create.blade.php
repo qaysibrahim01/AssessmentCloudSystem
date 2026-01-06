@@ -61,17 +61,28 @@
                         class="border px-3 py-2 rounded w-full"
                         required>
                     <option value="">Select State</option>
+                    <option value="Johor">Johor</option>
+                    <option value="Kedah">Kedah</option>
+                    <option value="Kelantan">Kelantan</option>
+                    <option value="Melaka">Melaka</option>
+                    <option value="Negeri Sembilan">Negeri Sembilan</option>
+                    <option value="Pahang">Pahang</option>
+                    <option value="Perak">Perak</option>
+                    <option value="Perlis">Perlis</option>
                     <option value="Selangor">Selangor</option>
+                    <option value="Penang">Penang</option>
+                    <option value="Terengganu">Terengganu</option>
+                    <option value="Sabah">Sabah</option>
+                    <option value="Sarawak">Sarawak</option>
                     <option value="WP Kuala Lumpur">WP Kuala Lumpur</option>
                     <option value="WP Putrajaya">WP Putrajaya</option>
-                    <option value="Johor">Johor</option>
-                    <option value="Penang">Penang</option>
+                    <option value="WP Labuan">WP Labuan</option>
                 </select>
 
                 <select id="city"
                         class="border px-3 py-2 rounded w-full"
                         required>
-                    <option value="">Select City</option>
+                    <option value="">Select District</option>
                 </select>
 
                 <input id="postcode"
@@ -129,20 +140,31 @@
 </div>
 
 <script>
-const cities = {
-    Selangor: ["Shah Alam","Petaling Jaya","Subang Jaya","Klang"],
+const districts = {
+    Johor: ["Batu Pahat","Johor Bahru","Kluang","Kota Tinggi","Kulai","Mersing","Muar","Pontian","Segamat","Tangkak"],
+    Kedah: ["Baling","Bandar Baharu","Kota Setar","Kuala Muda","Kubang Pasu","Kulim","Langkawi","Padang Terap","Pendang","Pokok Sena","Sik","Yan"],
+    Kelantan: ["Bachok","Gua Musang","Jeli","Kota Bharu","Kuala Krai","Machang","Pasir Mas","Pasir Puteh","Tanah Merah","Tumpat","Lojing"],
+    Melaka: ["Alor Gajah","Central Melaka","Jasin"],
+    "Negeri Sembilan": ["Jelebu","Jempol","Kuala Pilah","Port Dickson","Rembau","Seremban","Tampin"],
+    Pahang: ["Bentong","Bera","Cameron Highlands","Jerantut","Kuantan","Lipis","Maran","Pekan","Raub","Rompin","Temerloh"],
+    Perak: ["Bagan Datuk","Batang Padang","Hilir Perak","Hulu Perak","Kampar","Kerian","Kinta","Kuala Kangsar","Larut Matang dan Selama","Manjung","Muallim","Perak Tengah"],
+    Perlis: ["Kangar","Padang Besar","Arau"],
+    Penang: ["Barat Daya","Seberang Perai Tengah","Seberang Perai Utara","Seberang Perai Selatan","Timur Laut"],
+    Sabah: ["Beaufort","Beluran","Keningau","Kota Belud","Kota Kinabalu","Kota Marudu","Kuala Penyu","Kudat","Kunak","Lahad Datu","Nabawan","Papar","Penampang","Pitas","Ranau","Sandakan","Semporna","Sipitang","Tambunan","Tawau","Tenom","Tongod","Tuaran","Putatan"],
+    Sarawak: ["Betong","Bintulu","Kapit","Kuching","Limbang","Miri","Mukah","Samarahan","Sarikei","Serian","Sibu","Sri Aman"],
+    Selangor: ["Gombak","Hulu Langat","Hulu Selangor","Klang","Kuala Langat","Kuala Selangor","Petaling","Sabak Bernam","Sepang"],
+    Terengganu: ["Besut","Dungun","Hulu Terengganu","Kemaman","Kuala Nerus","Kuala Terengganu","Marang","Setiu"],
     "WP Kuala Lumpur": ["Kuala Lumpur"],
     "WP Putrajaya": ["Putrajaya"],
-    Johor: ["Johor Bahru","Skudai"],
-    Penang: ["George Town","Bayan Lepas"]
+    "WP Labuan": ["Labuan"]
 };
 
 const stateEl = document.getElementById('state');
 const cityEl = document.getElementById('city');
 
 stateEl.addEventListener('change', function () {
-    cityEl.innerHTML = '<option value="">Select City</option>';
-    (cities[this.value] || []).forEach(city => {
+    cityEl.innerHTML = '<option value="">Select District</option>';
+    (districts[this.value] || []).forEach(city => {
         const opt = document.createElement('option');
         opt.value = city;
         opt.textContent = city;

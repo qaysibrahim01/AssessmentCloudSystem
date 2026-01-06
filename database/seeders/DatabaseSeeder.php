@@ -12,11 +12,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        $adminEmail = 'admin@example.com';
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        \App\Models\User::firstOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name' => 'admin',
+                'password' => bcrypt('12345678'),
+                'role' => 'admin',
+                'approval_status' => 'approved',
+                'is_approved' => true,
+                'approved_at' => now(),
+                'approval_email_sent_at' => null,
+            ]
+        );
     }
 }

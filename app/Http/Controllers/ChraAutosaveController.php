@@ -12,15 +12,27 @@ class ChraAutosaveController extends Controller
         abort_if($chra->isLocked(), 403);
 
         $chra->update(
-            $request->only([
-                'assessor_registration_no',
-                'assessment_objective',
-                'process_description',
-                'work_activities',
-                'chemical_usage_areas',
-                'assessor_conclusion',
-                'implementation_timeframe',
-            ])
+            [
+                ...$request->only([
+                    'assessor_registration_no',
+                    'general_objective',
+                    'process_description',
+                    'work_activities',
+                    'chemical_usage_areas',
+                    'assessment_location',
+                    'assessor_conclusion',
+                    'implementation_timeframe',
+                    'business_nature',
+                    'assisted_by',
+                    'dosh_ref_num',
+                ]),
+                'specified_objectives' => collect($request->input('specified_objectives', []))
+                    ->map(fn ($v) => trim($v))
+                    ->filter()
+                    ->take(5)
+                    ->values()
+                    ->all(),
+            ]
         );
 
 

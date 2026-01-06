@@ -28,6 +28,11 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'company_name',
+        'is_approved',
+        'approval_status',
+        'approved_at',
+        'approval_email_sent_at',
     ];
 
     /**
@@ -49,6 +54,9 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'approved_at'       => 'datetime',
+        'approval_email_sent_at' => 'datetime',
+        'is_approved'       => 'boolean',
     ];
 
     /**

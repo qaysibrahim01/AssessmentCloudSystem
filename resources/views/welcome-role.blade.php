@@ -60,6 +60,7 @@
         const roleSelect = document.getElementById('role');
         const loginBtn = document.getElementById('loginBtn');
         const registerBtn = document.getElementById('registerBtn');
+        const registerWrap = registerBtn.parentElement;
 
         function updateLinks() {
             const role = roleSelect.value;
@@ -67,8 +68,16 @@
             // Login does NOT depend on role
             loginBtn.href = `/login`;
 
-            // Registration DOES depend on role
-            registerBtn.href = `/register?role=${role}`;
+            // Registration depends on role; admin self-signup is disabled
+            if (role === 'admin') {
+                registerBtn.removeAttribute('href');
+                registerBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                registerBtn.title = 'Admin accounts are created by the master admin';
+            } else {
+                registerBtn.href = `/register?role=${role}`;
+                registerBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                registerBtn.title = '';
+            }
         }
 
         roleSelect.addEventListener('change', updateLinks);

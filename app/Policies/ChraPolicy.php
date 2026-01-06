@@ -21,7 +21,9 @@ class ChraPolicy
 
         // Committee: APPROVED only (system OR uploaded)
         if ($user->role === 'committee') {
-            return $chra->status === 'approved';
+            return $chra->status === 'approved'
+                && $user->company_name
+                && strcasecmp($chra->company_name ?? '', $user->company_name) === 0;
         }
 
         // Assessor

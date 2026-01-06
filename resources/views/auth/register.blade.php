@@ -23,6 +23,23 @@
                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
             </div>
 
+            @php
+                $role = old('role', request('role'));
+            @endphp
+
+            @if($role === 'committee')
+                <div class="mt-4">
+                    <x-label for="company_name" value="{{ __('Company Name') }}" />
+                    <x-input id="company_name"
+                             class="block mt-1 w-full"
+                             type="text"
+                             name="company_name"
+                             :value="old('company_name')"
+                             required
+                             autocomplete="organization" />
+                </div>
+            @endif
+
             <div class="mt-4">
                 <x-label for="email" value="{{ __('Email') }}" />
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />

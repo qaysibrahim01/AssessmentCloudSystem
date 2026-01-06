@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminChraDeleteController;
 use App\Http\Controllers\Committee\CommitteeChraController;
 use App\Http\Controllers\Admin\AdminUploadedChraController;
+use App\Http\Controllers\Admin\AdminUserApprovalController;
 
 
 /*
@@ -30,6 +31,7 @@ Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
+    'approved',
 ])->group(function () {
 
     /*
@@ -108,6 +110,15 @@ Route::middleware([
             Route::delete('/chra/{chra}/uploaded-delete',
                 [AdminUploadedChraController::class, 'destroy']
             )->name('chra.uploaded.destroy');
+
+            Route::get('/users', [AdminUserApprovalController::class, 'index'])
+                ->name('users.index');
+            Route::post('/users/{user}/approve', [AdminUserApprovalController::class, 'approve'])
+                ->name('users.approve');
+            Route::post('/users/{user}/reject', [AdminUserApprovalController::class, 'reject'])
+                ->name('users.reject');
+            Route::post('/users/admin-create', [AdminUserApprovalController::class, 'storeAdmin'])
+                ->name('users.create-admin');
 
 
         });

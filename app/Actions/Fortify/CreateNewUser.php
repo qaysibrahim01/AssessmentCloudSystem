@@ -22,6 +22,16 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'company_name' => [
+                'nullable',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($input) {
+                    if (($input['role'] ?? null) === 'committee' && empty($value)) {
+                        $fail('The company name field is required for committee users.');
+                    }
+                },
+            ],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ])->validate();
@@ -30,9 +40,15 @@ class CreateNewUser implements CreatesNewUsers
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
-            'role' => in_array($input['role'] ?? null, ['admin', 'assessor', 'committee'])
+            // Admin sign-ups are blocked; admins are created by the master admin only
+            'role' => in_array($input['role'] ?? null, ['assessor', 'committee'])
                 ? $input['role']
                 : 'assessor',
+            'company_name' => $input['company_name'] ?? null,
+            'approval_status' => 'pending',
+            'approved_at' => null,
+            'is_approved' => false,
+            'approval_email_sent_at' => null,
         ]);
     }
 }

@@ -14,16 +14,12 @@
 
         <!-- LEFT -->
         <div class="flex items-center gap-4">
-            <button @click="sidebarOpen = !sidebarOpen" class="text-gray-600">
-                ☰
+            <button @click="sidebarOpen = !sidebarOpen" class="text-gray-600 text-2xl leading-none">
+                &#9776;
             </button>
 
-            <img src="{{ asset('images/logo.jpg') }}" class="h-10">
-
-            {{-- ROLE-AWARE DASHBOARD LINK --}}
-            <a href="{{ route('dashboard') }}"
-               class="text-sm font-medium text-gray-600 hover:text-blue-600">
-                Dashboard
+            <a href="{{ route('dashboard') }}" class="flex items-center">
+                <img src="{{ asset('images/logo.jpg') }}" class="h-10" alt="AssessmentCS">
             </a>
         </div>
 
@@ -52,11 +48,16 @@
         <aside x-show="sidebarOpen"
                class="w-64 bg-white border-r p-4 text-sm">
 
+            <a href="{{ route('dashboard') }}"
+               class="block px-3 py-2 rounded hover:bg-gray-100 font-medium">
+                Dashboard
+            </a>
+
             {{-- ASSESSOR --}}
             @if(auth()->user()->role === 'assessor')
                 <a href="{{ route('chra.index') }}"
                    class="block px-3 py-2 rounded hover:bg-gray-100">
-                    🧪 CHRA
+                    CHRA
                 </a>
             @endif
 
@@ -64,8 +65,28 @@
             @if(auth()->user()->role === 'admin')
                 <a href="{{ route('admin.chra.index') }}"
                    class="block px-3 py-2 rounded hover:bg-gray-100">
-                    🧪 CHRA Reviews
+                    CHRA Reviews
                 </a>
+                <a href="{{ route('admin.users.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    User Approvals
+                </a>
+            @endif
+
+            {{-- COMMITTEE --}}
+            @if(auth()->user()->role === 'committee')
+                <a href="{{ route('committee.chra.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    CHRA
+                </a>
+
+                <div class="block px-3 py-2 rounded text-gray-400 cursor-not-allowed">
+                    HIRARC (view only - coming soon)
+                </div>
+
+                <div class="block px-3 py-2 rounded text-gray-400 cursor-not-allowed">
+                    NRA (view only - coming soon)
+                </div>
             @endif
 
         </aside>

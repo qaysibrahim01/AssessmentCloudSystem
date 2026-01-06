@@ -13,6 +13,12 @@ class CommitteeChraController extends Controller
     {
         $query = Chra::where('status', 'approved');
 
+        // Scope to committee's company
+        if (auth()->user()->role === 'committee') {
+            $company = auth()->user()->company_name;
+            $query->where('company_name', $company ?: '__none__');
+        }
+
         // Sorting
         $sortBy = $request->get('sort_by', 'approved_at');
         $sortOrder = $request->get('sort_order', 'desc');
@@ -63,6 +69,11 @@ class CommitteeChraController extends Controller
 
     public function showUploaded(Chra $chra)
     {
+        abort_if(
+            auth()->user()->role === 'committee'
+            && strcasecmp($chra->company_name ?? '', auth()->user()->company_name ?? '') !== 0,
+            403
+        );
         abort_if(!$chra->isUploaded(), 404);
 
         return view('committee.chra.show-uploaded', compact('chra'));

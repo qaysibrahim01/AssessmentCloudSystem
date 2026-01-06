@@ -44,48 +44,137 @@
     @endif
 
 
+    <p class="text-xs text-red-600">
+        * Mandatory for submission. Incomplete sections will block approval.
+    </p>
+
     <!-- =========================
         SECTIONS A + B + G
     ========================== -->
     <form method="POST" action="{{ route('chra.update-sections', $chra) }}">
         @csrf
 
-        <div class="mb-3">
-            <label class="block text-xs text-gray-500 mb-1">
-                Competent Person Registration No (DOSH)
-            </label>
-
-            <input type="text"
-                name="assessor_registration_no"
-                value="{{ old('assessor_registration_no', $chra->assessor_registration_no) }}"
-                placeholder="e.g. JKKP HIE 1234"
-                class="border rounded px-3 py-2 w-full"
-                {{ $chra->isLocked() ? 'readonly' : '' }}>
-        </div>
-
-
-        <!-- SECTION A -->
-        <section id="section-a" class="bg-white p-6 rounded shadow-sm">
-            <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
-                <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
-                    A
+        <!-- SECTION 1.0 INTRODUCTION -->
+        <section id="section-a" class="bg-white p-6 rounded shadow-sm space-y-4">
+            <div class="flex items-center gap-3 font-semibold text-lg">
+                <span class="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm">
+                    1.0
                 </span>
-                Introduction & Objective
-            </h2>
+                <span>Introduction</span>
+                <span class="text-red-500">*</span>
+            </div>
 
-            <textarea name="assessment_objective"
-                      rows="3"
-                      class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
-                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->assessment_objective }}</textarea>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Organisation</label>
+                    <input type="text"
+                           value="{{ $chra->company_name }}"
+                           class="border rounded px-3 py-2 w-full bg-gray-100"
+                           readonly>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Assessment Date</label>
+                    <input type="text"
+                           value="{{ optional($chra->assessment_date)->format('d M Y') }}"
+                           class="border rounded px-3 py-2 w-full bg-gray-100"
+                           readonly>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Assessment Address</label>
+                    <input type="text"
+                           value="{{ $chra->company_address }}"
+                           class="border rounded px-3 py-2 w-full bg-gray-100"
+                           readonly>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Business Nature</label>
+                    <input type="text"
+                           name="business_nature"
+                           value="{{ old('business_nature', $chra->business_nature) }}"
+                           class="border rounded px-3 py-2 w-full"
+                           {{ $chra->isLocked() ? 'readonly' : '' }}>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Assessor</label>
+                    <input type="text"
+                           value="{{ $chra->assessor_name }}"
+                           class="border rounded px-3 py-2 w-full bg-gray-100"
+                           readonly>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Assisted By</label>
+                    <input type="text"
+                           name="assisted_by"
+                           value="{{ old('assisted_by', $chra->assisted_by) }}"
+                           class="border rounded px-3 py-2 w-full"
+                           {{ $chra->isLocked() ? 'readonly' : '' }}>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">DOSH Reg. No.</label>
+                    <input type="text"
+                        name="assessor_registration_no"
+                        value="{{ old('assessor_registration_no', $chra->assessor_registration_no) }}"
+                        placeholder="e.g. JKKP HIE 1234"
+                        class="border rounded px-3 py-2 w-full"
+                        {{ $chra->isLocked() ? 'readonly' : '' }}>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">DOSH Ref. Num.</label>
+                    <input type="text"
+                           name="dosh_ref_num"
+                           value="{{ old('dosh_ref_num', $chra->dosh_ref_num) }}"
+                           class="border rounded px-3 py-2 w-full"
+                           {{ $chra->isLocked() ? 'readonly' : '' }}>
+                </div>
+            </div>
         </section>
 
-        <!-- SECTION B -->
+        <!-- SECTION 2.0 OBJECTIVE -->
+        <section class="bg-white p-6 rounded shadow-sm space-y-4">
+            <div class="flex items-center gap-3 font-semibold text-lg">
+                <span class="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm">
+                    2.0
+                </span>
+                <span>Objective</span>
+                <span class="text-red-500">*</span>
+            </div>
+
+            <div>
+                <label class="block text-xs text-gray-600 mb-1">General Objective</label>
+                <textarea name="general_objective"
+                          rows="2"
+                          class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                          {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('general_objective', $chra->general_objective) }}</textarea>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs text-gray-600">Specified Objectives (minimum 2, up to 5)</label>
+                    <span class="text-[11px] text-gray-500">Leave unused lines blank if not needed.</span>
+                </div>
+                @php
+                    $specified = old('specified_objectives', $chra->specified_objectives ?? []);
+                    $specified = is_array($specified) ? $specified : [];
+                @endphp
+                @for($i = 0; $i < 5; $i++)
+                    <input type="text"
+                           name="specified_objectives[]"
+                           value="{{ $specified[$i] ?? '' }}"
+                           class="border rounded px-3 py-2 w-full"
+                           placeholder="({{ chr(97 + $i) }})"
+                           {{ $chra->isLocked() ? 'readonly' : '' }}>
+                @endfor
+            </div>
+        </section>
+
+        <!-- SECTION 3.0 PROCESS DESCRIPTION -->
         <section id="section-b" class="bg-white p-6 rounded shadow-sm space-y-3">
             <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
-                <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
-                    B
+                <span class="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm">
+                    3.0
                 </span>
                 Process Description
+                <span class="text-red-500">*</span>
             </h2>
 
 
@@ -94,19 +183,26 @@
                       class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
                       {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->process_description }}</textarea>
 
-            <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">Work Activities</h3>
+            <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">3.1 General description of work activities</h3>
 
             <textarea name="work_activities"
                       rows="2"
                       class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
                       {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->work_activities }}</textarea>
 
-            <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">Chemical Usage Areas</h3>
+            <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">3.2 Description of the work activities which involves chemicals</h3>
 
             <textarea name="chemical_usage_areas"
                       rows="2"
                       class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
                       {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->chemical_usage_areas }}</textarea>
+
+            <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">3.3 Description of each work area that involves chemicals</h3>
+
+            <textarea name="assessment_location"
+                      rows="2"
+                      class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->assessment_location }}</textarea>
         </section>
 
         @if($chra->canEdit())
@@ -126,7 +222,8 @@
                 <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
                     C
                 </span>
-                Work Units
+                4.0 Work Unit Description
+                <span class="text-red-500">*</span>
             </h2>
 
         @if($chra->canEdit())
@@ -162,6 +259,7 @@
                     D
                 </span>
                 Chemical Register
+                <span class="text-red-500">*</span>
             </h2>
 
         @if($chra->canEdit())
@@ -199,7 +297,10 @@
                 E
             </span>
             <div>
-                <h2 class="text-lg font-semibold">Exposure Assessment</h2>
+                <h2 class="text-lg font-semibold">
+                    6.0 Findings of Assessment
+                    <span class="text-red-500">*</span>
+                </h2>
                 <p class="text-xs text-gray-500">
                     Assessment of chemical exposure based on work activity, route and frequency (Forms A–D)
                 </p>
@@ -429,7 +530,8 @@
                 <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
                     F
                 </span>
-                Recommendations & Control Measures
+                8.0 Recommendations
+                <span class="text-red-500">*</span>
             </h2>
 
         @if($chra->canEdit())
@@ -512,7 +614,8 @@
                 <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
                     G
                 </span>
-                Assessor Conclusion & Summary
+                7.0 Discussion
+                <span class="text-red-500">*</span>
             </h2>
 
             <!-- AUTO SUMMARY -->
@@ -588,11 +691,17 @@
 let autoSaveTimer = null;
 
 document.querySelectorAll(
-    'textarea[name="assessment_objective"], \
+    'textarea[name="general_objective"], \
      textarea[name="process_description"], \
      textarea[name="work_activities"], \
      textarea[name="chemical_usage_areas"], \
+     textarea[name="assessment_location"], \
      textarea[name="assessor_conclusion"], \
+     input[name="business_nature"], \
+     input[name="assisted_by"], \
+     input[name="assessor_registration_no"], \
+     input[name="dosh_ref_num"], \
+     input[name="specified_objectives[]"], \
      select[name="implementation_timeframe"]'
 ).forEach(el => {
     el.addEventListener('input', () => {
@@ -606,12 +715,19 @@ document.querySelectorAll(
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    assessment_objective: document.querySelector('[name="assessment_objective"]')?.value,
+                    general_objective: document.querySelector('[name="general_objective"]')?.value,
                     process_description: document.querySelector('[name="process_description"]')?.value,
                     work_activities: document.querySelector('[name="work_activities"]')?.value,
                     chemical_usage_areas: document.querySelector('[name="chemical_usage_areas"]')?.value,
+                    assessment_location: document.querySelector('[name="assessment_location"]')?.value,
                     assessor_conclusion: document.querySelector('[name="assessor_conclusion"]')?.value,
-                    implementation_timeframe: document.querySelector('[name="implementation_timeframe"]')?.value
+                    implementation_timeframe: document.querySelector('[name="implementation_timeframe"]')?.value,
+                    business_nature: document.querySelector('[name="business_nature"]')?.value,
+                    assisted_by: document.querySelector('[name="assisted_by"]')?.value,
+                    assessor_registration_no: document.querySelector('[name="assessor_registration_no"]')?.value,
+                    dosh_ref_num: document.querySelector('[name="dosh_ref_num"]')?.value,
+                    specified_objectives: Array.from(document.querySelectorAll('input[name="specified_objectives[]"]'))
+                        .map(el => el.value)
                 })
             });
         }, 1500);
