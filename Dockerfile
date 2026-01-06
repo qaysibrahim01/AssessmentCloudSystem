@@ -24,6 +24,11 @@ RUN composer install --no-dev --optimize-autoloader
 # Install JS dependencies & build assets
 RUN npm install && npm run build
 
+# Clear Laravel caches (important when deploying)
+RUN php artisan config:clear && \
+    php artisan route:clear && \
+    php artisan view:clear
+
 EXPOSE 10000
 
 CMD php artisan migrate --force && \
