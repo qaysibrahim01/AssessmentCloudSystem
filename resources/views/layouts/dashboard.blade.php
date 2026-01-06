@@ -59,6 +59,14 @@
                    class="block px-3 py-2 rounded hover:bg-gray-100">
                     CHRA
                 </a>
+                <a href="{{ route('hirarc.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    HIRARC
+                </a>
+                <a href="{{ route('nra.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    NRA
+                </a>
             @endif
 
             {{-- ADMIN --}}

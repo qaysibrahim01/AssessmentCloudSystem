@@ -36,8 +36,8 @@
             </div>
         </a>
 
-        <!-- HIRARC CARD (DISABLED) -->
-        <div
+        <!-- HIRARC CARD -->
+        <a href="{{ route('hirarc.index') }}"
             class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-pointer">
 
             <h3 class="text-lg font-semibold text-gray-700">
@@ -48,13 +48,13 @@
                 Hazard Identification, Risk Assessment & Control
             </p>
 
-            <div class="mt-4 text-sm text-gray-400">
-                Coming Soon
+            <div class="mt-4 text-sm text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition">
+                Open
             </div>
-        </div>
+        </a>
 
-        <!-- NRA CARD (DISABLED) -->
-        <div
+        <!-- NRA CARD -->
+        <a href="{{ route('nra.index') }}"
             class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-pointer">
 
             <h3 class="text-lg font-semibold text-gray-700">
@@ -65,10 +65,10 @@
                 Noise Risk Assessment
             </p>
 
-            <div class="mt-4 text-sm text-gray-400">
-                Coming Soon
+            <div class="mt-4 text-sm text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition">
+                Open
             </div>
-        </div>
+        </a>
 
     </div>
 

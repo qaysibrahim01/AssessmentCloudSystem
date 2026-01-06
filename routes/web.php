@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChraController;
+use App\Http\Controllers\HirarcController;
+use App\Http\Controllers\NraController;
 use App\Http\Controllers\Admin\AdminChraController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminChraDeleteController;
@@ -225,6 +227,39 @@ Route::middleware([
                 [\App\Http\Controllers\ChraAutosaveController::class, 'store']
             )->name('autosave');
 
+        });
+
+
+    
+
+    /*
+    |--------------------------------------------------------------------------
+    | ASSESSOR - HIRARC MODULE (MVP)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:assessor')
+        ->prefix('hirarc')
+        ->name('hirarc.')
+        ->group(function () {
+            Route::get('/', [HirarcController::class, 'index'])->name('index');
+            Route::get('/create', [HirarcController::class, 'create'])->name('create');
+            Route::post('/', [HirarcController::class, 'store'])->name('store');
+            Route::get('/{hirarc}/edit', [HirarcController::class, 'edit'])->name('edit');
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ASSESSOR - NRA MODULE (MVP)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:assessor')
+        ->prefix('nra')
+        ->name('nra.')
+        ->group(function () {
+            Route::get('/', [NraController::class, 'index'])->name('index');
+            Route::get('/create', [NraController::class, 'create'])->name('create');
+            Route::post('/', [NraController::class, 'store'])->name('store');
+            Route::get('/{nra}/edit', [NraController::class, 'edit'])->name('edit');
         });
 
 
