@@ -30,6 +30,11 @@ class Chra extends Model
         'process_description',
         'work_activities',
         'chemical_usage_areas',
+        'methodology_team',
+        'methodology_degree_hazard',
+        'methodology_assess_exposure',
+        'methodology_control_adequacy',
+        'methodology_conclusion',
 
         'overall_risk_profile',
         'assessor_conclusion',
@@ -158,13 +163,26 @@ class Chra extends Model
         if (!$this->general_objective || count(array_filter($this->specified_objectives ?? [])) < 2) {
             $errors[] = 'Section A incomplete (objectives)';
         }
-        if (!$this->process_description || !$this->work_activities || !$this->chemical_usage_areas)
-            $errors[] = 'Section B incomplete';
-        if ($this->workUnits()->count() === 0) $errors[] = 'Section C incomplete';
-        if ($this->chemicals()->count() === 0) $errors[] = 'Section D incomplete';
-        if ($this->exposures()->count() === 0) $errors[] = 'Section E incomplete';
-        if ($this->recommendations()->count() === 0) $errors[] = 'Section F incomplete';
-        if (!$this->assessor_conclusion) $errors[] = 'Section G incomplete';
+        if (!$this->process_description || !$this->work_activities || !$this->chemical_usage_areas) {
+            $errors[] = 'Section B incomplete (process description)';
+        }
+        if ($this->workUnits()->count() === 0) {
+            $errors[] = 'Section C incomplete (work units)';
+        }
+        // Chemical register
+        if ($this->chemicals()->count() === 0) {
+            $errors[] = 'Section D incomplete (chemical register)';
+        }
+        // Findings of assessment uses the same chemical entries
+        if ($this->chemicals()->count() === 0) {
+            $errors[] = 'Section E incomplete (findings of assessment)';
+        }
+        if ($this->recommendations()->count() === 0) {
+            $errors[] = 'Section F incomplete (recommendations)';
+        }
+        if (!$this->assessor_conclusion) {
+            $errors[] = 'Section G incomplete (discussion/conclusion)';
+        }
 
         return $errors;
     }

@@ -1,4 +1,4 @@
-@extends('layouts.dashboard')
+﻿@extends('layouts.dashboard')
 
 @section('content')
 
@@ -11,8 +11,8 @@
                 Chemical Health Risk Assessment (CHRA)
             </h1>
             <p class="text-gray-500 mt-1">
-                Company: {{ $chra->company_name }} ·
-                Assessment Date: {{ $chra->assessment_date }}
+                Company: {{ $chra->company_name }} •
+                Assessment Date: {{ optional($chra->assessment_date)->format('d M Y') ?? '—' }}
             </p>
         </div>
 
@@ -163,12 +163,12 @@
 
                 <p class="text-gray-500">
                     {{ $event['date_formatted'] }}
-                    · {{ $event['by'] }}
+                    Â· {{ $event['by'] }}
                 </p>
 
                 @if(!empty($event['note']))
                     <p class="text-gray-600 italic mt-1">
-                        “{{ $event['note'] }}”
+                        â€œ{{ $event['note'] }}â€
                     </p>
                 @endif
             </li>
@@ -185,3 +185,5 @@
 </div>
 
 @endsection
+
+

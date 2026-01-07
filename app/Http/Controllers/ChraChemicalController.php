@@ -14,7 +14,12 @@ class ChraChemicalController extends Controller
 
         $data = $request->validate([
             'chemical_name' => 'required|string',
+            'chra_work_unit_id' => 'nullable|exists:chra_work_units,id',
+            'health_hazard' => 'nullable|string',
             'h_code'        => 'nullable|string',
+            'hazard_rating' => 'nullable|integer|min:1|max:5',
+            'route_dermal'  => 'nullable|string|max:3',
+            'route_ingestion' => 'nullable|string|max:3',
         ]);
 
         $chra->chemicals()->create($data);

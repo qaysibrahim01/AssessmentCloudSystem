@@ -27,31 +27,33 @@
             </div>
         </a>
 
-        <!-- HIRARC (VIEW ONLY PLACEHOLDER) -->
-        <div class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-not-allowed opacity-70">
-            <h3 class="text-lg font-semibold text-gray-700">
+        <!-- HIRARC CARD -->
+        <a href="{{ route('committee.hirarc.index') }}"
+           class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-gray-800 group-hover:text-blue-600">
                 HIRARC
             </h3>
             <p class="text-sm text-gray-500 mt-1">
                 Hazard Identification, Risk Assessment & Control
             </p>
-            <div class="mt-4 text-sm text-gray-400">
-                View-only access coming soon
+            <div class="mt-4 text-sm text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition">
+                Open +
             </div>
-        </div>
+        </a>
 
-        <!-- NRA (VIEW ONLY PLACEHOLDER) -->
-        <div class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-not-allowed opacity-70">
-            <h3 class="text-lg font-semibold text-gray-700">
+        <!-- NRA CARD -->
+        <a href="{{ route('committee.nra.index') }}"
+           class="group bg-white rounded-xl border p-6 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-gray-800 group-hover:text-blue-600">
                 NRA
             </h3>
             <p class="text-sm text-gray-500 mt-1">
                 Noise Risk Assessment
             </p>
-            <div class="mt-4 text-sm text-gray-400">
-                View-only access coming soon
+            <div class="mt-4 text-sm text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition">
+                Open +
             </div>
-        </div>
+        </a>
     </div>
 
 </div>

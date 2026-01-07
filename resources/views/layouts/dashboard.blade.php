@@ -75,6 +75,14 @@
                    class="block px-3 py-2 rounded hover:bg-gray-100">
                     CHRA Reviews
                 </a>
+                <a href="{{ route('admin.hirarc.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    HIRARC Reviews
+                </a>
+                <a href="{{ route('admin.nra.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    NRA Reviews
+                </a>
                 <a href="{{ route('admin.users.index') }}"
                    class="block px-3 py-2 rounded hover:bg-gray-100">
                     User Approvals
@@ -88,13 +96,15 @@
                     CHRA
                 </a>
 
-                <div class="block px-3 py-2 rounded text-gray-400 cursor-not-allowed">
-                    HIRARC (view only - coming soon)
-                </div>
+                <a href="{{ route('committee.hirarc.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    HIRARC
+                </a>
 
-                <div class="block px-3 py-2 rounded text-gray-400 cursor-not-allowed">
-                    NRA (view only - coming soon)
-                </div>
+                <a href="{{ route('committee.nra.index') }}"
+                   class="block px-3 py-2 rounded hover:bg-gray-100">
+                    NRA
+                </a>
             @endif
 
         </aside>

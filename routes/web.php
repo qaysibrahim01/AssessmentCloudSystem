@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminChraDeleteController;
 use App\Http\Controllers\Committee\CommitteeChraController;
 use App\Http\Controllers\Admin\AdminUploadedChraController;
+use App\Http\Controllers\Admin\AdminUploadedHirarcController;
+use App\Http\Controllers\Admin\AdminUploadedNraController;
 use App\Http\Controllers\Admin\AdminUserApprovalController;
 
 
@@ -35,6 +37,23 @@ Route::middleware([
     'verified',
     'approved',
 ])->group(function () {
+
+    // Shared CHRA PDF download (admins/committee/assessor who can view)
+    Route::get('/chra/{chra}/pdf',
+        [ChraController::class, 'downloadPdf']
+    )->middleware('can:view,chra')
+    ->name('chra.download');
+
+    // Shared HIRARC/NRA PDF
+    Route::get('/hirarc/{hirarc}/pdf',
+        [HirarcController::class, 'downloadPdf']
+    )->middleware('can:view,hirarc')
+    ->name('hirarc.pdf');
+
+    Route::get('/nra/{nra}/pdf',
+        [NraController::class, 'downloadPdf']
+    )->middleware('can:view,nra')
+    ->name('nra.pdf');
 
     /*
     |--------------------------------------------------------------------------
@@ -113,6 +132,30 @@ Route::middleware([
                 [AdminUploadedChraController::class, 'destroy']
             )->name('chra.uploaded.destroy');
 
+            Route::get('/hirarc/uploaded/create',
+                [AdminUploadedHirarcController::class, 'create']
+            )->name('hirarc.uploaded.create');
+
+            Route::post('/hirarc/uploaded',
+                [AdminUploadedHirarcController::class, 'store']
+            )->name('hirarc.uploaded.store');
+
+            Route::delete('/hirarc/{hirarc}/uploaded-delete',
+                [AdminUploadedHirarcController::class, 'destroy']
+            )->name('hirarc.uploaded.destroy');
+
+            Route::get('/nra/uploaded/create',
+                [AdminUploadedNraController::class, 'create']
+            )->name('nra.uploaded.create');
+
+            Route::post('/nra/uploaded',
+                [AdminUploadedNraController::class, 'store']
+            )->name('nra.uploaded.store');
+
+            Route::delete('/nra/{nra}/uploaded-delete',
+                [AdminUploadedNraController::class, 'destroy']
+            )->name('nra.uploaded.destroy');
+
             Route::get('/users', [AdminUserApprovalController::class, 'index'])
                 ->name('users.index');
             Route::post('/users/{user}/approve', [AdminUserApprovalController::class, 'approve'])
@@ -122,7 +165,25 @@ Route::middleware([
             Route::post('/users/admin-create', [AdminUserApprovalController::class, 'storeAdmin'])
                 ->name('users.create-admin');
 
+            // Admin review for HIRARC
+            Route::get('/hirarc', [\App\Http\Controllers\Admin\AdminHirarcController::class, 'index'])
+                ->name('hirarc.index');
+            Route::get('/hirarc/{hirarc}', [\App\Http\Controllers\Admin\AdminHirarcController::class, 'show'])
+                ->name('hirarc.show');
+            Route::post('/hirarc/{hirarc}/approve', [\App\Http\Controllers\Admin\AdminHirarcController::class, 'approve'])
+                ->name('hirarc.approve');
+            Route::post('/hirarc/{hirarc}/reject', [\App\Http\Controllers\Admin\AdminHirarcController::class, 'reject'])
+                ->name('hirarc.reject');
 
+            // Admin review for NRA
+            Route::get('/nra', [\App\Http\Controllers\Admin\AdminNraController::class, 'index'])
+                ->name('nra.index');
+            Route::get('/nra/{nra}', [\App\Http\Controllers\Admin\AdminNraController::class, 'show'])
+                ->name('nra.show');
+            Route::post('/nra/{nra}/approve', [\App\Http\Controllers\Admin\AdminNraController::class, 'approve'])
+                ->name('nra.approve');
+            Route::post('/nra/{nra}/reject', [\App\Http\Controllers\Admin\AdminNraController::class, 'reject'])
+                ->name('nra.reject');
         });
 
     /*
@@ -187,11 +248,6 @@ Route::middleware([
             )->middleware('can:requestDelete,chra')
             ->name('request-delete');
 
-            Route::get('/{chra}/pdf',
-                [ChraController::class, 'downloadPdf']
-            )->middleware('can:view,chra')
-            ->name('download');
-
             // =========================
             // CHRA SUB-RESOURCES
             // =========================
@@ -244,7 +300,68 @@ Route::middleware([
             Route::get('/', [HirarcController::class, 'index'])->name('index');
             Route::get('/create', [HirarcController::class, 'create'])->name('create');
             Route::post('/', [HirarcController::class, 'store'])->name('store');
-            Route::get('/{hirarc}/edit', [HirarcController::class, 'edit'])->name('edit');
+
+            // Uploaded PDF view (MUST be before {hirarc})
+            Route::get('/{hirarc}/uploaded',
+                [HirarcController::class, 'showUploaded']
+            )->middleware('can:view,hirarc')
+            ->name('show.uploaded');
+
+            // Main HIRARC routes
+            Route::get('/{hirarc}', [HirarcController::class, 'show'])
+                ->middleware('can:view,hirarc')
+                ->name('show');
+
+            Route::get('/{hirarc}/edit', [HirarcController::class, 'edit'])
+                ->middleware('can:update,hirarc')
+                ->name('edit');
+
+            Route::post('/{hirarc}/update-sections', [HirarcController::class, 'updateSections'])
+                ->middleware('can:update,hirarc')
+                ->name('update-sections');
+
+            Route::match(['post','put'],'/{hirarc}/save-draft', [HirarcController::class, 'saveDraft'])
+                ->name('save-draft')->middleware('can:update,hirarc');
+
+            Route::match(['post','put'],'/{hirarc}/submit', [HirarcController::class, 'submitForApproval'])
+                ->name('submit')->middleware('can:update,hirarc');
+
+            Route::post('/{hirarc}/request-delete', [HirarcController::class, 'requestDelete'])
+                ->middleware('can:requestDelete,hirarc')
+                ->name('request-delete');
+
+            // HIRARC sub-resources
+            Route::post('/{hirarc}/work-units',
+                [\App\Http\Controllers\HirarcWorkUnitController::class, 'store']
+            )->name('workunit');
+
+            Route::delete('/work-units/{unit}',
+                [\App\Http\Controllers\HirarcWorkUnitController::class, 'destroy']
+            )->name('workunit.delete');
+
+            Route::post('/{hirarc}/chemicals',
+                [\App\Http\Controllers\HirarcChemicalController::class, 'store']
+            )->name('chemical');
+
+            Route::delete('/chemicals/{chemical}',
+                [\App\Http\Controllers\HirarcChemicalController::class, 'destroy']
+            )->name('chemical.delete');
+
+            Route::post('/{hirarc}/exposures',
+                [\App\Http\Controllers\HirarcExposureController::class, 'store']
+            )->name('exposure.store');
+
+            Route::post('/{hirarc}/recommendations',
+                [\App\Http\Controllers\HirarcRecommendationController::class, 'store']
+            )->name('recommendation');
+
+            Route::delete('/recommendations/{rec}',
+                [\App\Http\Controllers\HirarcRecommendationController::class, 'destroy']
+            )->name('recommendation.delete');
+
+            Route::post('/{hirarc}/autosave',
+                [\App\Http\Controllers\HirarcAutosaveController::class, 'store']
+            )->name('autosave');
         });
 
     /*
@@ -259,7 +376,68 @@ Route::middleware([
             Route::get('/', [NraController::class, 'index'])->name('index');
             Route::get('/create', [NraController::class, 'create'])->name('create');
             Route::post('/', [NraController::class, 'store'])->name('store');
-            Route::get('/{nra}/edit', [NraController::class, 'edit'])->name('edit');
+
+            // Uploaded PDF view (MUST be before {nra})
+            Route::get('/{nra}/uploaded',
+                [NraController::class, 'showUploaded']
+            )->middleware('can:view,nra')
+            ->name('show.uploaded');
+
+            // Main NRA routes
+            Route::get('/{nra}', [NraController::class, 'show'])
+                ->middleware('can:view,nra')
+                ->name('show');
+
+            Route::get('/{nra}/edit', [NraController::class, 'edit'])
+                ->middleware('can:update,nra')
+                ->name('edit');
+
+            Route::post('/{nra}/update-sections', [NraController::class, 'updateSections'])
+                ->middleware('can:update,nra')
+                ->name('update-sections');
+
+            Route::match(['post','put'],'/{nra}/save-draft', [NraController::class, 'saveDraft'])
+                ->name('save-draft')->middleware('can:update,nra');
+
+            Route::match(['post','put'],'/{nra}/submit', [NraController::class, 'submitForApproval'])
+                ->name('submit')->middleware('can:update,nra');
+
+            Route::post('/{nra}/request-delete', [NraController::class, 'requestDelete'])
+                ->middleware('can:requestDelete,nra')
+                ->name('request-delete');
+
+            // NRA sub-resources
+            Route::post('/{nra}/work-units',
+                [\App\Http\Controllers\NraWorkUnitController::class, 'store']
+            )->name('workunit');
+
+            Route::delete('/work-units/{unit}',
+                [\App\Http\Controllers\NraWorkUnitController::class, 'destroy']
+            )->name('workunit.delete');
+
+            Route::post('/{nra}/chemicals',
+                [\App\Http\Controllers\NraChemicalController::class, 'store']
+            )->name('chemical');
+
+            Route::delete('/chemicals/{chemical}',
+                [\App\Http\Controllers\NraChemicalController::class, 'destroy']
+            )->name('chemical.delete');
+
+            Route::post('/{nra}/exposures',
+                [\App\Http\Controllers\NraExposureController::class, 'store']
+            )->name('exposure.store');
+
+            Route::post('/{nra}/recommendations',
+                [\App\Http\Controllers\NraRecommendationController::class, 'store']
+            )->name('recommendation');
+
+            Route::delete('/recommendations/{rec}',
+                [\App\Http\Controllers\NraRecommendationController::class, 'destroy']
+            )->name('recommendation.delete');
+
+            Route::post('/{nra}/autosave',
+                [\App\Http\Controllers\NraAutosaveController::class, 'store']
+            )->name('autosave');
         });
 
 
@@ -296,6 +474,42 @@ Route::middleware([
                 [\App\Http\Controllers\Committee\CommitteeChraController::class, 'downloadPdf']
             )->middleware('can:view,chra')
             ->name('chra.pdf');
+
+            Route::get('/hirarc',
+                [\App\Http\Controllers\Committee\CommitteeHirarcController::class, 'index']
+            )->name('hirarc.index');
+            Route::get('/hirarc/{hirarc}',
+                [\App\Http\Controllers\Committee\CommitteeHirarcController::class, 'show']
+            )->middleware('can:view,hirarc')
+            ->name('hirarc.show');
+
+            Route::get('/hirarc/{hirarc}/uploaded',
+                [\App\Http\Controllers\Committee\CommitteeHirarcController::class, 'showUploaded']
+            )->middleware('can:view,hirarc')
+            ->name('hirarc.show.uploaded');
+
+            Route::get('/hirarc/{hirarc}/pdf',
+                [\App\Http\Controllers\Committee\CommitteeHirarcController::class, 'downloadPdf']
+            )->middleware('can:view,hirarc')
+            ->name('hirarc.pdf');
+
+            Route::get('/nra',
+                [\App\Http\Controllers\Committee\CommitteeNraController::class, 'index']
+            )->name('nra.index');
+            Route::get('/nra/{nra}',
+                [\App\Http\Controllers\Committee\CommitteeNraController::class, 'show']
+            )->middleware('can:view,nra')
+            ->name('nra.show');
+
+            Route::get('/nra/{nra}/uploaded',
+                [\App\Http\Controllers\Committee\CommitteeNraController::class, 'showUploaded']
+            )->middleware('can:view,nra')
+            ->name('nra.show.uploaded');
+
+            Route::get('/nra/{nra}/pdf',
+                [\App\Http\Controllers\Committee\CommitteeNraController::class, 'downloadPdf']
+            )->middleware('can:view,nra')
+            ->name('nra.pdf');
         });
 
 

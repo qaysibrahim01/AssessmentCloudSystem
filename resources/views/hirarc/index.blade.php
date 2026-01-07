@@ -91,10 +91,22 @@
                             {{ optional($hirarc->created_at)->format('d M Y') }}
                         </td>
                         <td class="px-3 py-2 text-right">
-                            <a href="{{ route('hirarc.edit', $hirarc) }}"
-                               class="text-blue-600 hover:underline">
-                                Edit / Continue
-                            </a>
+                            @if($hirarc->isUploaded())
+                                <a href="{{ route('hirarc.show.uploaded', $hirarc) }}"
+                                   class="text-blue-600 hover:underline">
+                                    View Uploaded
+                                </a>
+                            @elseif($hirarc->canEdit())
+                                <a href="{{ route('hirarc.edit', $hirarc) }}"
+                                   class="text-blue-600 hover:underline">
+                                    Edit / Continue
+                                </a>
+                            @else
+                                <a href="{{ route('hirarc.show', $hirarc) }}"
+                                   class="text-blue-600 hover:underline">
+                                    View
+                                </a>
+                            @endif
                         </td>
                     </tr>
                 @empty

@@ -15,7 +15,7 @@
         </div>
 
         <div class="flex gap-2">
-            <a href="{{ route('committee.chra.pdf', $chra) }}"
+            <a href="{{ route('chra.download', $chra) }}"
                class="bg-green-600 text-white px-4 py-2 rounded">
                 Download PDF
             </a>
@@ -32,7 +32,7 @@
 
     @if($chra->uploaded_pdf_path)
         <div class="mt-6">
-            <a href="{{ route('committee.chra.pdf', $chra) }}"
+            <a href="{{ route('chra.download', $chra) }}"
             class="bg-green-600 text-white px-4 py-2 rounded">
                 Download Official PDF
             </a>

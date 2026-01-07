@@ -91,10 +91,22 @@
                             {{ optional($nra->created_at)->format('d M Y') }}
                         </td>
                         <td class="px-3 py-2 text-right">
-                            <a href="{{ route('nra.edit', $nra) }}"
-                               class="text-blue-600 hover:underline">
-                                Edit / Continue
-                            </a>
+                            @if($nra->isUploaded())
+                                <a href="{{ route('nra.show.uploaded', $nra) }}"
+                                   class="text-blue-600 hover:underline">
+                                    View Uploaded
+                                </a>
+                            @elseif($nra->canEdit())
+                                <a href="{{ route('nra.edit', $nra) }}"
+                                   class="text-blue-600 hover:underline">
+                                    Edit / Continue
+                                </a>
+                            @else
+                                <a href="{{ route('nra.show', $nra) }}"
+                                   class="text-blue-600 hover:underline">
+                                    View
+                                </a>
+                            @endif
                         </td>
                     </tr>
                 @empty

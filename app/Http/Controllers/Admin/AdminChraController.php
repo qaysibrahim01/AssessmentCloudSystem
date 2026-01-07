@@ -120,7 +120,7 @@ class AdminChraController extends Controller
 
         $chra->load([
             'workUnits',
-            'chemicals',
+            'chemicals.workUnit',
             'exposures.workUnit',
             'exposures.chemical',
             'exposures.riskEvaluation',

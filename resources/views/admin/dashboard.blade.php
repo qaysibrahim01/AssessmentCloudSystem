@@ -25,25 +25,39 @@
         </div>
     </a>
 
-    {{-- HIRARC (placeholder) --}}
-    <div class="bg-gray-50 rounded-lg border p-6 opacity-60 cursor-not-allowed">
-        <h3 class="text-lg font-semibold text-gray-500">
+    {{-- HIRARC MODULE --}}
+    <a href="{{ route('admin.hirarc.index') }}"
+       class="group bg-white rounded-lg border p-6 hover:border-gray-400 transition">
+
+        <h3 class="text-lg font-semibold text-gray-800">
             HIRARC
         </h3>
-        <p class="text-sm text-gray-400 mt-1">
-            Coming soon
-        </p>
-    </div>
 
-    {{-- NRA (placeholder) --}}
-    <div class="bg-gray-50 rounded-lg border p-6 opacity-60 cursor-not-allowed">
-        <h3 class="text-lg font-semibold text-gray-500">
+        <p class="text-sm text-gray-500 mt-1">
+            Hazard Identification, Risk Assessment & Control
+        </p>
+
+        <div class="mt-4 text-xs text-gray-400 group-hover:text-gray-600">
+            Open +
+        </div>
+    </a>
+
+    {{-- NRA MODULE --}}
+    <a href="{{ route('admin.nra.index') }}"
+       class="group bg-white rounded-lg border p-6 hover:border-gray-400 transition">
+
+        <h3 class="text-lg font-semibold text-gray-800">
             NRA
         </h3>
-        <p class="text-sm text-gray-400 mt-1">
-            Coming soon
+
+        <p class="text-sm text-gray-500 mt-1">
+            Noise Risk Assessment
         </p>
-    </div>
+
+        <div class="mt-4 text-xs text-gray-400 group-hover:text-gray-600">
+            Open +
+        </div>
+    </a>
 
 </div>
 

@@ -15,6 +15,9 @@ class ChraWorkUnitController extends Controller
         $data = $request->validate([
             'name'      => 'required|string',
             'work_area' => 'required|string',
+            'male_count'   => 'nullable|integer|min:0',
+            'female_count' => 'nullable|integer|min:0',
+            'main_task'    => 'nullable|string',
         ]);
 
         $chra->workUnits()->create($data);

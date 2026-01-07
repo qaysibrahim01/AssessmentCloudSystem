@@ -181,28 +181,28 @@
             <textarea name="process_description"
                       rows="2"
                       class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
-                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->process_description }}</textarea>
+                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('process_description', $chra->process_description) }}</textarea>
 
             <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">3.1 General description of work activities</h3>
 
             <textarea name="work_activities"
                       rows="2"
                       class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
-                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->work_activities }}</textarea>
+                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('work_activities', $chra->work_activities) }}</textarea>
 
             <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">3.2 Description of the work activities which involves chemicals</h3>
 
             <textarea name="chemical_usage_areas"
                       rows="2"
                       class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
-                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->chemical_usage_areas }}</textarea>
+                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('chemical_usage_areas', $chra->chemical_usage_areas) }}</textarea>
 
             <h3 class="flex items-center gap-3 font-semibold text-lg mb-4">3.3 Description of each work area that involves chemicals</h3>
 
             <textarea name="assessment_location"
                       rows="2"
                       class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
-                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ $chra->assessment_location }}</textarea>
+                      {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('assessment_location', $chra->assessment_location) }}</textarea>
         </section>
 
         @if($chra->canEdit())
@@ -220,296 +220,268 @@
     <section id="section-c" class="bg-white p-6 rounded shadow-sm">
             <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
                 <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
-                    C
+                    4.0
                 </span>
-                4.0 Work Unit Description
+                Work Unit Description
                 <span class="text-red-500">*</span>
             </h2>
 
         @if($chra->canEdit())
-        <form method="POST" action="{{ route('chra.workunit', $chra) }}" class="flex gap-2 mb-3">
+        <form method="POST" action="{{ route('chra.workunit', $chra) }}" class="flex flex-wrap gap-2 mb-3">
             @csrf
-            <input name="name" placeholder="Work Unit" class="border px-2 py-1 rounded">
-            <input name="work_area" placeholder="Work Area" class="border px-2 py-1 rounded">
+            <input name="name" placeholder="Work Unit" value="{{ old('name') }}" class="border px-2 py-1 rounded" required>
+            <input name="work_area" placeholder="Work Area" value="{{ old('work_area') }}" class="border px-2 py-1 rounded" required>
+            <input type="number" name="male_count" min="0" placeholder="Male" value="{{ old('male_count') }}" class="border px-2 py-1 rounded w-24">
+            <input type="number" name="female_count" min="0" placeholder="Female" value="{{ old('female_count') }}" class="border px-2 py-1 rounded w-24">
+            <input name="main_task" placeholder="Main job task" value="{{ old('main_task') }}" class="border px-2 py-1 rounded flex-1 min-w-[200px]">
             <button class="bg-blue-600 text-white px-4 py-1 rounded">Add</button>
         </form>
         @endif
 
-        <ul class="space-y-1">
-            @foreach($chra->workUnits as $unit)
-                <li class="flex justify-between items-center">
-                    <span>{{ $unit->name }} — {{ $unit->work_area }}</span>
-                    @if($chra->canEdit())
-                        <form method="POST" action="{{ route('chra.workunit.delete', $unit) }}">
-                            @csrf @method('DELETE')
-                            <button class="text-red-600 text-xs">Remove</button>
-                        </form>
-                    @endif
-                </li>
-            @endforeach
-        </ul>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border border-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left border">Work Unit</th>
+                        <th class="px-3 py-2 text-left border">Work Area</th>
+                        <th class="px-3 py-2 text-center border">No. of Worker<br>Male</th>
+                        <th class="px-3 py-2 text-center border">No. of Worker<br>Female</th>
+                        <th class="px-3 py-2 text-left border">Main job task</th>
+                        @if($chra->canEdit())
+                            <th class="px-3 py-2 text-center border">Action</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @forelse($chra->workUnits as $unit)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-2 border">{{ $unit->name }}</td>
+                            <td class="px-3 py-2 border">{{ $unit->work_area }}</td>
+                            <td class="px-3 py-2 border text-center">{{ $unit->male_count ?? '-' }}</td>
+                            <td class="px-3 py-2 border text-center">{{ $unit->female_count ?? '-' }}</td>
+                            <td class="px-3 py-2 border">{{ $unit->main_task ?? '-' }}</td>
+                            @if($chra->canEdit())
+                                <td class="px-3 py-2 border text-center">
+                                    <form method="POST" action="{{ route('chra.workunit.delete', $unit) }}">
+                                        @csrf @method('DELETE')
+                                        <button class="text-red-600 text-xs">Remove</button>
+                                    </form>
+                                </td>
+                            @endif
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ $chra->canEdit() ? 6 : 5 }}" class="px-3 py-4 text-center text-gray-500">
+                                No work units recorded.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </section>
 
+
     <!-- =========================
-        SECTION D – CHEMICALS
+        SECTION D – METHODOLOGY
     ========================== -->
-    <section id="section-d" class="bg-white p-6 rounded shadow-sm">
-            <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
+    <form method="POST" action="{{ route('chra.update-sections', $chra) }}">
+        @csrf
+        <section id="section-methodology" class="bg-white p-6 rounded shadow-sm space-y-4">
+            <h2 class="flex items-center gap-3 font-semibold text-lg mb-2">
                 <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
-                    D
+                    5.0
                 </span>
-                Chemical Register
-                <span class="text-red-500">*</span>
+                Methodology
             </h2>
 
-        @if($chra->canEdit())
-        <form method="POST" action="{{ route('chra.chemical', $chra) }}" class="flex gap-2 mb-3">
-            @csrf
-            <input name="chemical_name" placeholder="Chemical Name" class="border px-2 py-1 rounded">
-            <input name="h_code" placeholder="H-Code" class="border px-2 py-1 rounded">
-            <button class="bg-blue-600 text-white px-4 py-1 rounded">Add</button>
-        </form>
-        @endif
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        5.1 Formation of Assessment Team
+                    </label>
+                    <textarea name="methodology_team" rows="2"
+                        class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                        {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('methodology_team', $chra->methodology_team) }}</textarea>
+                </div>
 
-        <ul class="space-y-1">
-            @foreach($chra->chemicals as $chemical)
-                <li class="flex justify-between items-center">
-                    <span>{{ $chemical->chemical_name }} ({{ $chemical->h_code ?? 'NC' }})</span>
-                    @if($chra->canEdit())
-                        <form method="POST" action="{{ route('chra.chemical.delete', $chemical) }}">
-                            @csrf @method('DELETE')
-                            <button class="text-red-600 text-xs">Remove</button>
-                        </form>
-                    @endif
-                </li>
-            @endforeach
-        </ul>
-    </section>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        5.2 Determining The Degree of Hazard
+                    </label>
+                    <textarea name="methodology_degree_hazard" rows="2"
+                        class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                        {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('methodology_degree_hazard', $chra->methodology_degree_hazard) }}</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        5.3 Assess Exposure
+                    </label>
+                    <textarea name="methodology_assess_exposure" rows="2"
+                        class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                        {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('methodology_assess_exposure', $chra->methodology_assess_exposure) }}</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        5.4 Adequate of Control Measure
+                    </label>
+                    <textarea name="methodology_control_adequacy" rows="2"
+                        class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                        {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('methodology_control_adequacy', $chra->methodology_control_adequacy) }}</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        5.5 Conclusion of Assessment
+                    </label>
+                    <textarea name="methodology_conclusion" rows="2"
+                        class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                        {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('methodology_conclusion', $chra->methodology_conclusion) }}</textarea>
+                </div>
+            </div>
+
+            @if($chra->canEdit())
+                <div class="text-right">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded">
+                        Save Methodology
+                    </button>
+                </div>
+            @endif
+        </section>
+    </form>
 
     <!-- =========================
-        SECTION E – EXPOSURE ASSESSMENT
+        SECTION E - FINDINGS OF ASSESSMENT
     ========================== -->
     <section id="section-e" class="bg-white p-6 rounded shadow-sm space-y-8">
 
         <!-- HEADER -->
         <div class="flex items-center gap-3">
             <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-semibold">
-                E
+                6.0
             </span>
             <div>
                 <h2 class="text-lg font-semibold">
-                    6.0 Findings of Assessment
+                    Findings of Assessment
                     <span class="text-red-500">*</span>
                 </h2>
-                <p class="text-xs text-gray-500">
-                    Assessment of chemical exposure based on work activity, route and frequency (Forms A–D)
-                </p>
             </div>
         </div>
 
         @if($chra->canEdit())
         <!-- INPUT FORM -->
         <form method="POST"
-            action="{{ route('chra.exposure.store', $chra) }}"
+            action="{{ route('chra.chemical', $chra) }}"
             class="space-y-6 border rounded-lg p-5 bg-gray-50">
             @csrf
 
-            <!-- GROUP 1 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">
                         Work Unit
                     </label>
-                    <select name="chra_work_unit_id" class="border rounded px-3 py-2 w-full" required>
+                    <select name="chra_work_unit_id" class="border rounded px-3 py-2 w-full">
                         <option value="">Select Work Unit</option>
                         @foreach($chra->workUnits as $unit)
-                            <option value="{{ $unit->id }}">{{ $unit->name }}</option>
+                            <option value="{{ $unit->id }}" @selected(old('chra_work_unit_id') == $unit->id)>{{ $unit->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Chemical
+                        Chemical Exposed
                     </label>
-                    <select name="chra_chemical_id" class="border rounded px-3 py-2 w-full" required>
-                        <option value="">Select Chemical</option>
-                        @foreach($chra->chemicals as $chem)
-                            <option value="{{ $chem->id }}">{{ $chem->chemical_name }}</option>
-                        @endforeach
-                    </select>
+                    <input name="chemical_name" class="border rounded px-3 py-2 w-full" placeholder="e.g. AVESTA 308L" value="{{ old('chemical_name') }}" required>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Exposure Route
+                        H-Code
                     </label>
-                    <select name="exposure_route" class="border rounded px-3 py-2 w-full" required>
-                        <option value="">Select Route</option>
-                        <option value="inhalation">Inhalation (Form A)</option>
-                        <option value="dermal">Dermal (Form B)</option>
-                        <option value="ingestion">Ingestion (Form C)</option>
-                    </select>
+                    <input name="h_code" class="border rounded px-3 py-2 w-full" placeholder="e.g. H351" value="{{ old('h_code') }}">
                 </div>
             </div>
 
-            <!-- GROUP 2 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Health Hazard
+                    </label>
+                    <textarea name="health_hazard" rows="3" class="border rounded px-3 py-2 w-full" placeholder="Not classified as health hazard">{{ old('health_hazard') }}</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">
+                        Hazard Rating (Inhalation 1-5)
+                    </label>
+                    <input type="number" name="hazard_rating" min="1" max="5" class="border rounded px-3 py-2 w-full" placeholder="-" value="{{ old('hazard_rating') }}">
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Task Description
+                        Dermal (Y/N)
                     </label>
-                    <input name="task" class="border rounded px-3 py-2 w-full"
-                        placeholder="e.g. Mixing, spraying, cleaning">
+                    <input name="route_dermal" class="border rounded px-3 py-2 w-full" placeholder="Y or N" value="{{ old('route_dermal') }}">
                 </div>
-
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Exposure Frequency
+                        Ingestion (Y/N)
                     </label>
-                    <input name="exposure_frequency" class="border rounded px-3 py-2 w-full"
-                        placeholder="e.g. Daily / Weekly">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Exposure Duration
-                    </label>
-                    <input name="exposure_duration" class="border rounded px-3 py-2 w-full"
-                        placeholder="e.g. 2 hours per shift">
-                </div>
-            </div>
-
-            <!-- GROUP 3 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Control Adequacy
-                    </label>
-                    <select name="control_adequacy" class="border rounded px-3 py-2 w-full">
-                        <option value="">Select</option>
-                        <option value="adequate">Adequate</option>
-                        <option value="inadequate">Inadequate</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Exposure Rating
-                    </label>
-                    <input type="number" name="exposure_rating" min="1" max="5"
-                        class="border rounded px-3 py-2 w-full"
-                        placeholder="1 (Low) – 5 (High)" required>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Hazard Rating
-                    </label>
-
-                    <input type="number"
-                        name="hazard_rating_display"
-                        class="border rounded px-3 py-2 w-full bg-gray-100"
-                        readonly
-                        id="hazard-rating-display"
-                        placeholder="Auto-calculated">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Existing Control Measures
-                    </label>
-                    <textarea name="existing_control" rows="2"
-                            class="border rounded px-3 py-2 w-full resize-y"
-                            placeholder="Engineering, administrative, PPE"></textarea>
+                    <input name="route_ingestion" class="border rounded px-3 py-2 w-full" placeholder="Y or N" value="{{ old('route_ingestion') }}">
                 </div>
             </div>
 
             <!-- ACTION -->
             <div class="flex justify-end">
                 <button class="bg-blue-600 text-white px-5 py-2 rounded">
-                    Add Exposure Assessment
+                    Add Finding
                 </button>
             </div>
         </form>
         @endif
 
-        <!-- RESULTS TABLE -->
-        <p class="text-xs text-gray-500 mb-2">
-            Risk Level is calculated based on Hazard Rating × Exposure Rating.
-        </p>
-
+        @php
+            $chemicalsByUnit = $chra->chemicals->groupBy(fn($chem) => $chem->workUnit->name ?? 'Unassigned');
+        @endphp
         <div class="overflow-x-auto border rounded-lg">
             <table class="w-full text-sm border-collapse">
                 <thead class="bg-gray-100 text-gray-700">
                     <tr>
-                        <th class="px-3 py-2 border text-left">Work Unit</th>
-                        <th class="px-3 py-2 border text-left">Chemical</th>
-                        <th class="px-3 py-2 border text-left">Exposure Route</th>
-                        <th class="px-3 py-2 border text-center">Exposure Rating</th>
-                        <th class="px-3 py-2 border text-center">Hazard Rating</th>
-                        <th class="px-3 py-2 border text-center">Risk Level</th>
-                        <th class="px-3 py-2 border text-center">Action Priority</th>
+                        <th class="px-3 py-2 border text-left w-1/4">Chemical Exposed</th>
+                        <th class="px-3 py-2 border text-left w-1/3">Health Hazard</th>
+                        <th class="px-3 py-2 border text-center w-20">H-Code</th>
+                        <th class="px-3 py-2 border text-center w-28">Hazard Rating<br>(Inhalation 1-5)</th>
+                        <th class="px-3 py-2 border text-center w-20">Dermal<br>(Y/N)</th>
+                        <th class="px-3 py-2 border text-center w-20">Ingestion<br>(Y/N)</th>
                     </tr>
                 </thead>
 
                 <tbody class="bg-white divide-y">
-                    @forelse($chra->exposures as $exp)
-
-                        @php
-                            $risk = optional($exp->riskEvaluation)->risk_level;
-                        @endphp
-
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-3 py-2 border">
-                                {{ $exp->workUnit->name }}
-                            </td>
-
-                            <td class="px-3 py-2 border">
-                                {{ $exp->chemical->chemical_name }}
-                            </td>
-
-                            <td class="px-3 py-2 border capitalize">
-                                {{ $exp->exposure_route }}
-                            </td>
-
-                            <td class="px-3 py-2 border text-center">
-                                {{ optional($exp->riskEvaluation)->exposure_rating ?? '-' }}
-                            </td>
-
-                            <td class="px-3 py-2 border text-center">
-                                {{ optional($exp->riskEvaluation)->hazard_rating ?? '-' }}
-                            </td>
-
-                            <!-- RISK LEVEL -->
-                            <td class="px-3 py-2 border text-center">
-                                @if($risk === 'high')
-                                    <span class="px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700">
-                                        High
-                                    </span>
-                                @elseif($risk === 'moderate')
-                                    <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-700">
-                                        Moderate
-                                    </span>
-                                @elseif($risk === 'low')
-                                    <span class="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700">
-                                        Low
-                                    </span>
-                                @else
-                                    <span class="text-gray-400 text-xs">–</span>
-                                @endif
-                            </td>
-
-                            <!-- ACTION PRIORITY -->
-                            <td class="px-3 py-2 border text-center font-medium">
-                                {{ optional($exp->riskEvaluation)->action_priority ?? '-' }}
+                    @forelse($chemicalsByUnit as $unitName => $chems)
+                        <tr class="bg-gray-50 font-semibold">
+                            <td colspan="6" class="px-3 py-2 border italic">
+                                Work Unit: {{ $unitName }} (Number of chemicals = {{ $chems->count() }})
                             </td>
                         </tr>
-
+                        @foreach($chems as $chem)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 border">{{ $chem->chemical_name }}</td>
+                                <td class="px-3 py-2 border whitespace-pre-line">{{ $chem->health_hazard ?? 'Not classified as health hazard' }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $chem->h_code ?? 'NC' }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $chem->hazard_rating ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $chem->route_dermal ?? '-' }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $chem->route_ingestion ?? '-' }}</td>
+                            </tr>
+                        @endforeach
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-6 text-center text-gray-500">
-                                No exposure assessments recorded yet.
+                            <td colspan="6" class="px-4 py-6 text-center text-gray-500">
+                                No chemicals recorded yet.
                             </td>
                         </tr>
                     @endforelse
@@ -521,16 +493,65 @@
     </section>
 
 
+        <!-- SECTION G -->
+        <section id="section-g" class="bg-white p-6 rounded shadow-sm space-y-4">
+            <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
+                <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
+                    7.0 
+                </span>
+                Discussion
+                <span class="text-red-500">*</span>
+            </h2>
 
-    <!-- =========================
+            <!-- AUTO SUMMARY -->
+            <div class="bg-gray-50 p-4 rounded text-sm">
+                <p>
+                    <strong>Overall Risk Profile:</strong>
+                    {{ $chra->highestRiskLevel() ?? 'Not assessed yet' }}
+                </p>
+                <p>
+                    <strong>Recommended Action Priority:</strong>
+                    {{ $chra->recommendedActionPriority() ?? 'Not assessed yet' }}
+                </p>
+            </div>
+
+            <!-- MANUAL ASSESSOR CONCLUSION -->
+            <textarea name="assessor_conclusion"
+                rows="3"
+                placeholder="Assessor’s professional judgement and justification"
+                class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
+                {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('assessor_conclusion', $chra->assessor_conclusion) }}</textarea>
+
+
+            <select name="implementation_timeframe"
+                    class="border rounded px-3 py-2 w-full"
+                    {{ $chra->isLocked() ? 'disabled' : '' }}>
+                <option value="">Implementation Timeframe</option>
+                @php $impl = old('implementation_timeframe', $chra->implementation_timeframe); @endphp
+                <option value="Immediate" @selected($impl === 'Immediate')>
+                    Immediate
+                </option>
+                <option value="Within 3 months" @selected($impl === 'Within 3 months')>
+                    Within 3 months
+                </option>
+                <option value="Within 6 months" @selected($impl === 'Within 6 months')>
+                    Within 6 months
+                </option>
+                <option value="Ongoing monitoring" @selected($impl === 'Ongoing monitoring')>
+                    Ongoing monitoring
+                </option>
+            </select>
+        </section>
+
+        <!-- =========================
         SECTION F – RECOMMENDATIONS
     ========================== -->
     <section id="section-f" class="bg-white p-6 rounded shadow-sm">
             <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
                 <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
-                    F
+                    8.0 
                 </span>
-                8.0 Recommendations
+               Recommendations
                 <span class="text-red-500">*</span>
             </h2>
 
@@ -545,11 +566,11 @@
                     class="border px-2 py-1 rounded"
                     required>
                 <option value="">Category</option>
-                <option value="TC">Technical Control</option>
-                <option value="OC">Operational Control</option>
-                <option value="PPE">PPE</option>
-                <option value="ERP">Emergency Response</option>
-                <option value="Monitoring">Monitoring</option>
+                <option value="TC" @selected(old('category') === 'TC')>Technical Control</option>
+                <option value="OC" @selected(old('category') === 'OC')>Operational Control</option>
+                <option value="PPE" @selected(old('category') === 'PPE')>PPE</option>
+                <option value="ERP" @selected(old('category') === 'ERP')>Emergency Response</option>
+                <option value="Monitoring" @selected(old('category') === 'Monitoring')>Monitoring</option>
             </select>
 
             <!-- ACTION PRIORITY -->
@@ -557,15 +578,16 @@
                     class="border px-2 py-1 rounded"
                     required>
                 <option value="">Action Priority</option>
-                <option value="AP-1">AP-1 (Immediate)</option>
-                <option value="AP-2">AP-2 (Planned)</option>
-                <option value="AP-3">AP-3 (Monitoring)</option>
+                <option value="AP-1" @selected(old('action_priority') === 'AP-1')>AP-1 (Immediate)</option>
+                <option value="AP-2" @selected(old('action_priority') === 'AP-2')>AP-2 (Planned)</option>
+                <option value="AP-3" @selected(old('action_priority') === 'AP-3')>AP-3 (Monitoring)</option>
             </select>
 
             <!-- RECOMMENDATION -->
             <input name="recommendation"
                 placeholder="Recommended control measure"
                 class="border px-2 py-1 rounded col-span-2"
+                value="{{ old('recommendation') }}"
                 required>
 
             <div class="text-right md:col-span-4">
@@ -608,55 +630,6 @@
         </ul>
     </section>
 
-        <!-- SECTION G -->
-        <section id="section-g" class="bg-white p-6 rounded shadow-sm space-y-4">
-            <h2 class="flex items-center gap-3 font-semibold text-lg mb-4">
-                <span class="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm">
-                    G
-                </span>
-                7.0 Discussion
-                <span class="text-red-500">*</span>
-            </h2>
-
-            <!-- AUTO SUMMARY -->
-            <div class="bg-gray-50 p-4 rounded text-sm">
-                <p>
-                    <strong>Overall Risk Profile:</strong>
-                    {{ $chra->highestRiskLevel() ?? 'Not assessed yet' }}
-                </p>
-                <p>
-                    <strong>Recommended Action Priority:</strong>
-                    {{ $chra->recommendedActionPriority() ?? 'Not assessed yet' }}
-                </p>
-            </div>
-
-            <!-- MANUAL ASSESSOR CONCLUSION -->
-            <textarea name="assessor_conclusion"
-                rows="3"
-                placeholder="Assessor’s professional judgement and justification"
-                class="border rounded px-3 py-2 w-full leading-relaxed resize-y"
-                {{ $chra->isLocked() ? 'readonly' : '' }}>{{ old('assessor_conclusion', $chra->assessor_conclusion) }}</textarea>
-
-
-            <select name="implementation_timeframe"
-                    class="border rounded px-3 py-2 w-full"
-                    {{ $chra->isLocked() ? 'disabled' : '' }}>
-                <option value="">Implementation Timeframe</option>
-                <option value="Immediate" @selected($chra->implementation_timeframe === 'Immediate')>
-                    Immediate
-                </option>
-                <option value="Within 3 months" @selected($chra->implementation_timeframe === 'Within 3 months')>
-                    Within 3 months
-                </option>
-                <option value="Within 6 months" @selected($chra->implementation_timeframe === 'Within 6 months')>
-                    Within 6 months
-                </option>
-                <option value="Ongoing monitoring" @selected($chra->implementation_timeframe === 'Ongoing monitoring')>
-                    Ongoing monitoring
-                </option>
-            </select>
-        </section>
-
     <!-- GLOBAL ACTIONS -->
     <div class="flex gap-3">
         @if($chra->canEdit())
@@ -666,11 +639,7 @@
             </form>
 
             <form method="POST"
-                action="{{ route('chra.submit', $chra) }}"
-                @if(! $chra->isReadyForSubmission())
-                    onsubmit="alert('Please complete all mandatory CHRA sections before submission.'); return false;"
-                @endif
-            >
+                action="{{ route('chra.submit', $chra) }}">
                 @csrf
                 <button class="bg-green-600 text-white px-4 py-2 rounded"
                         onclick="return confirm('Submit CHRA for approval?')">

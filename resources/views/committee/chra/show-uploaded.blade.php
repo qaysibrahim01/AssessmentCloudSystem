@@ -10,7 +10,7 @@
                 Uploaded CHRA Report
             </h1>
             <p class="text-gray-500">
-                {{ $chra->company_name }} ·
+                {{ $chra->company_name }} •
                 Approved: {{ optional($chra->approved_at)->format('d M Y') }}
             </p>
         </div>

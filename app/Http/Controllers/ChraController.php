@@ -11,6 +11,7 @@ use App\Models\ChraExposure;
 use App\Models\ChraRiskEvaluation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ChraController extends Controller
@@ -75,6 +76,12 @@ class ChraController extends Controller
     {
         $this->authorize('view', $chra);
 
+        $chra->load([
+            'workUnits',
+            'chemicals.workUnit',
+            'recommendations',
+        ]);
+
         return view('chra.show', compact('chra'));
     }
 
@@ -102,6 +109,11 @@ class ChraController extends Controller
             'work_activities'          => 'nullable|string',
             'chemical_usage_areas'     => 'nullable|string',
             'assessment_location'      => 'nullable|string',
+            'methodology_team'         => 'nullable|string',
+            'methodology_degree_hazard'=> 'nullable|string',
+            'methodology_assess_exposure' => 'nullable|string',
+            'methodology_control_adequacy' => 'nullable|string',
+            'methodology_conclusion'   => 'nullable|string',
             'overall_risk_profile'     => 'nullable|in:Low,Moderate,High',
             'assessor_conclusion'      => 'nullable|string',
             'implementation_timeframe' => 'nullable|string',
@@ -110,12 +122,15 @@ class ChraController extends Controller
             'dosh_ref_num'             => 'nullable|string|max:255',
         ]);
 
-        $objectives = collect($request->input('specified_objectives', []))
-            ->map(fn ($v) => trim($v))
-            ->filter()
-            ->take(5)
-            ->values()
-            ->all();
+        // Keep existing specified objectives unless new values are submitted
+        $objectives = $request->has('specified_objectives')
+            ? collect($request->input('specified_objectives', []))
+                ->map(fn ($v) => trim($v))
+                ->filter()
+                ->take(5)
+                ->values()
+                ->all()
+            : ($chra->specified_objectives ?? []);
 
         if (count($objectives) < 2) {
             return back()
@@ -123,11 +138,39 @@ class ChraController extends Controller
                 ->withInput();
         }
 
-        $chra->update([
-            ...$validated,
-            'assessment_location'  => $validated['assessment_location'] ?? $chra->assessment_location,
-            'specified_objectives' => $objectives,
-        ]);
+        // Only overwrite fields that were present in the request; preserve others
+        $fields = [
+            'assessor_registration_no',
+            'general_objective',
+            'process_description',
+            'work_activities',
+            'chemical_usage_areas',
+            'assessment_location',
+            'methodology_team',
+            'methodology_degree_hazard',
+            'methodology_assess_exposure',
+            'methodology_control_adequacy',
+            'methodology_conclusion',
+            'overall_risk_profile',
+            'assessor_conclusion',
+            'implementation_timeframe',
+            'business_nature',
+            'assisted_by',
+            'dosh_ref_num',
+        ];
+
+        $updateData = [];
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $updateData[$field] = $validated[$field] ?? null;
+            } else {
+                $updateData[$field] = $chra->$field;
+            }
+        }
+
+        $updateData['specified_objectives'] = $objectives;
+
+        $chra->update($updateData);
 
         return redirect()->route('chra.edit', $chra)->withFragment('section-g');
     }
@@ -201,6 +244,14 @@ class ChraController extends Controller
         $this->authorize('view', $chra);
 
         abort_if(!in_array($chra->status, ['pending', 'approved']), 403);
+
+        // If this is an admin-uploaded CHRA with a stored PDF, return the original file
+        if ($chra->isUploaded() && $chra->uploaded_pdf_path) {
+            return Storage::download(
+                $chra->uploaded_pdf_path,
+                'CHRA_' . str_replace(' ', '_', $chra->company_name) . '.pdf'
+            );
+        }
 
         $chra->load([
             'workUnits',
